@@ -18,7 +18,7 @@ jobs:
         with:
           account: bounverif
           token: ${{ secrets.GITHUB_TOKEN }}
-          image-names: "zenoh-pico"
+          image-names: bazalt
           tag-selection: untagged
           cut-off: 1h
           dry-run: false

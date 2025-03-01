@@ -4,17 +4,17 @@ on:
     - cron: "19 19 * * 0" # 19:19 UTC every Sunday
   push:
     paths:
-      - containers/zenoh-pico-devel/**
+      - containers/bazalt-devel/**
       - .github/workflows/buildah-build-devel.yml # Self-trigger
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io/bounverif
-  IMAGE_NAME: zenoh-pico
+  IMAGE_NAME: bazalt
   PODMAN_ARCH: amd64
   PLATFORM: linux-amd64
-  ZENOH_PICO_VERSION: latest
-  ZENOH_PICO_LATEST_VERSION: latest
+  BAZALT_VERSION: latest
+  BAZALT_LATEST_VERSION: latest
   # CONTAINERS_ROOT: /home/runner/.local/share/containers
   # TMPDIR: /home/runner/.local/share/containers/tmp
 
@@ -54,10 +54,7 @@ jobs:
         run: |
           echo "PODMAN_ARCH=$(podman info --format='{{.Host.Arch}}')" >> $GITHUB_ENV
           echo "PLATFORM=$(podman info --format='{{.Version.OsArch}}' | sed 's/\//-/g')" >> $GITHUB_ENV
-          if [ "${{ env.ZENOH_PICO_VERSION }}" == "latest" ]; then
-            echo "ZENOH_PICO_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name')" >> $GITHUB_ENV
-          fi
-          echo "ZENOH_PICO_LATEST_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name')" >> $GITHUB_ENV
+          echo "BAZALT_VERSION=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -73,35 +70,35 @@ jobs:
         id: build-builder
         uses: redhat-actions/buildah-build@v2
         with:
-          context: ./containers/zenoh-pico-devel
-          image: zenoh-pico
+          context: ./containers/bazalt-devel
+          image: bazalt
           tags: |
-            ${{ env.ZENOH_PICO_VERSION }}-builder 
-            ${{ env.ZENOH_PICO_VERSION }}-builder-${{ env.PODMAN_ARCH }}
+            ${{ env.BAZALT_VERSION }}-builder 
+            ${{ env.BAZALT_VERSION }}-builder-${{ env.PODMAN_ARCH }}
           layers: true
           oci: true
           build-args: |
-            ZENOH_PICO_VERSION=${{ env.ZENOH_PICO_VERSION }}
+            BAZALT_VERSION=${{ env.BAZALT_VERSION }}
           extra-args: |
-            --target zenoh-pico-builder
+            --target bazalt-builder
           containerfiles: |
-            ./containers/zenoh-pico-devel/Dockerfile
+            ./containers/bazalt-devel/Dockerfile
 
       - name: Build devel container image
         id: build-devel
         uses: redhat-actions/buildah-build@v2
         with:
-          context: ./containers/zenoh-pico-devel
-          image: zenoh-pico
-          tags: ${{ env.ZENOH_PICO_VERSION }}-devel ${{ env.ZENOH_PICO_VERSION }}-devel-${{ env.PODMAN_ARCH }}
+          context: ./containers/bazalt-devel
+          image: bazalt
+          tags: ${{ env.BAZALT_VERSION }}-devel ${{ env.BAZALT_VERSION }}-devel-${{ env.PODMAN_ARCH }}
           layers: true
           oci: true
           build-args: |
-            ZENOH_PICO_VERSION=${{ env.ZENOH_PICO_VERSION }}
+            BAZALT_VERSION=${{ env.BAZALT_VERSION }}
           extra-args: |
-            --target zenoh-pico-devel
+            --target bazalt-devel
           containerfiles: |
-            ./containers/zenoh-pico-devel/Dockerfile
+            ./containers/bazalt-devel/Dockerfile
 
       - name: Push to GitHub Container Repository
         if: github.ref == 'refs/heads/main'
@@ -110,8 +107,8 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           image: ${{ steps.build-builder.outputs.image }}
-          tags: ${{ env.ZENOH_PICO_VERSION }}-builder-${{ env.PODMAN_ARCH }}
-          digestfile: ${{ runner.temp }}/digest-zenoh-pico-builder-${{ env.ZENOH_PICO_VERSION }}-${{ env.PLATFORM }}
+          tags: ${{ env.BAZALT_VERSION }}-builder-${{ env.PODMAN_ARCH }}
+          digestfile: ${{ runner.temp }}/digest-bazalt-builder-${{ env.BAZALT_VERSION }}-${{ env.PLATFORM }}
 
       - name: Push to GitHub Container Repository
         if: github.ref == 'refs/heads/main'
@@ -120,14 +117,14 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           image: ${{ steps.build-devel.outputs.image }}
-          tags: ${{ env.ZENOH_PICO_VERSION }}-devel-${{ env.PODMAN_ARCH }}
-          digestfile: ${{ runner.temp }}/digest-zenoh-pico-devel-${{ env.ZENOH_PICO_VERSION }}-${{ env.PLATFORM }}
+          tags: ${{ env.BAZALT_VERSION }}-devel-${{ env.PODMAN_ARCH }}
+          digestfile: ${{ runner.temp }}/digest-bazalt-devel-${{ env.BAZALT_VERSION }}-${{ env.PLATFORM }}
 
       - name: Upload digests
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: digest-zenoh-pico-${{ env.ZENOH_PICO_VERSION }}-${{ env.PLATFORM }}
+          name: digest-bazalt-${{ env.BAZALT_VERSION }}-${{ env.PLATFORM }}
           path: ${{ runner.temp }}/digest-*
           if-no-files-found: error
           retention-days: 1
@@ -156,35 +153,35 @@ jobs:
 
       - name: Prepare environment variables
         run: |
-          if [ "${{ env.ZENOH_PICO_VERSION }}" == "latest" ]; then
-            echo "ZENOH_PICO_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name')" >> $GITHUB_ENV
+          if [ "${{ env.BAZALT_VERSION }}" == "latest" ]; then
+            echo "BAZALT_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name')" >> $GITHUB_ENV
           fi
-          echo "ZENOH_PICO_LATEST_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name')" >> $GITHUB_ENV
+          echo "BAZALT_LATEST_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name')" >> $GITHUB_ENV
 
-      - name: Create and push manifest list for zenoh-pico-builder
+      - name: Create and push manifest list for bazalt-builder
         run: |
-          MANIFEST=zenoh-pico-builder
+          MANIFEST=bazalt-builder
           FULL_IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           buildah manifest create $MANIFEST
-          for digest in ${{ runner.temp }}/digests/digest-zenoh-pico-builder-*; do
+          for digest in ${{ runner.temp }}/digests/digest-bazalt-builder-*; do
             echo "Adding $(cat $digest)"
             buildah manifest add $MANIFEST $FULL_IMAGE_NAME@$(cat $digest)
           done
-          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.ZENOH_PICO_VERSION }}-builder
-          if [ "${{ env.ZENOH_PICO_VERSION }}" == "${{ env.ZENOH_PICO_LATEST_VERSION }}" ]; then
+          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.BAZALT_VERSION }}-builder
+          if [ "${{ env.BAZALT_VERSION }}" == "${{ env.BAZALT_LATEST_VERSION }}" ]; then
             buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-builder 
           fi
 
-      - name: Create and push manifest list for zenoh-pico-devel
+      - name: Create and push manifest list for bazalt-devel
         run: |
-          MANIFEST=zenoh-pico-devel
+          MANIFEST=bazalt-devel
           FULL_IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           buildah manifest create $MANIFEST
-          for digest in ${{ runner.temp }}/digests/digest-zenoh-pico-devel-*; do
+          for digest in ${{ runner.temp }}/digests/digest-bazalt-devel-*; do
             echo "Adding $(cat $digest)"
             buildah manifest add $MANIFEST $FULL_IMAGE_NAME@$(cat $digest)
           done
-          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.ZENOH_PICO_VERSION }}-devel
-          if [ "${{ env.ZENOH_PICO_VERSION }}" == "${{ env.ZENOH_PICO_LATEST_VERSION }}" ]; then
+          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.BAZALT_VERSION }}-devel
+          if [ "${{ env.BAZALT_VERSION }}" == "${{ env.BAZALT_LATEST_VERSION }}" ]; then
             buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-devel 
           fi

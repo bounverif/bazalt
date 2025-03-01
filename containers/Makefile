@@ -1,37 +1,53 @@
-ZENOH_PICO_IMAGE_NAME ?= localhost/zenoh-pico
-ZENOH_PICO_TARGET_VERSION ?= latest
-ZENOH_PICO_CURRENT_VERSION := $(if $(filter latest,$(ZENOH_PICO_TARGET_VERSION)),$(shell curl -s https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest | jq -r .tag_name),$(ZENOH_PICO_VERSION))
+BAZALT_IMAGE_REGISTRY ?= localhost
+BAZALT_IMAGE_NAME ?= bazalt
+BAZALT_TARGET_VERSION ?= latest
+BAZALT_CURRENT_VERSION ?= $(shell date +'%Y%m%d')
 
-CONTAINER_BUILD_CONTEXT_ROOT ?= .
+BAZALT_BUILD_PROTOBUF_VERSION ?= 3.21.12
 
-ZENOH_PICO_BUILD_PROTOBUF_VERSION ?= 3.15.8
+CONTAINER_BUILD_CONTEXT ?= .
 
 info:
-	@echo "zenoh pico version: ${ZENOH_PICO_VERSION}"
-	@echo "zenoh pico current version: ${ZENOH_PICO_CURRENT_VERSION}"
+	@echo "bazalt version: ${BAZALT_TARGET_VERSION}"
+	@echo "bazalt current version: ${BAZALT_CURRENT_VERSION}"
 
-devel:
+builder:
 	buildah build \
-		-f zenoh-pico-devel/Dockerfile \
-		--build-arg ZENOH_PICO_IMAGE_NAME=${ZENOH_PICO_IMAGE_NAME} \
-		--build-arg ZENOH_PICO_VERSION=${ZENOH_PICO_CURRENT_VERSION} \
+		-f bazalt-devel/Dockerfile \
+		--build-arg BAZALT_IMAGE_REGISTRY=${BAZALT_IMAGE_REGISTRY} \
+		--build-arg BAZALT_IMAGE_NAME=${BAZALT_IMAGE_NAME} \
+		--build-arg BAZALT_VERSION=${BAZALT_CURRENT_VERSION} \
 		--format oci \
 		--layers=true \
-		--target zenoh-pico-devel \
-		--tag ${ZENOH_PICO_IMAGE_NAME}:${ZENOH_PICO_TARGET_VERSION}-devel \
-		--tag ${ZENOH_PICO_IMAGE_NAME}:${ZENOH_PICO_CURRENT_VERSION}-devel \
-	${CONTAINER_BUILD_CONTEXT_ROOT}/zenoh-pico-devel
+		--target bazalt-builder \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_TARGET_VERSION}-builder \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_CURRENT_VERSION}-builder \
+	${CONTAINER_BUILD_CONTEXT}
+
+devel: builder
+	buildah build \
+		-f bazalt-devel/Dockerfile \
+		--build-arg BAZALT_IMAGE_REGISTRY=${BAZALT_IMAGE_REGISTRY} \
+		--build-arg BAZALT_IMAGE_NAME=${BAZALT_IMAGE_NAME} \
+		--build-arg BAZALT_VERSION=${BAZALT_CURRENT_VERSION} \
+		--format oci \
+		--layers=true \
+		--target bazalt-devel \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_TARGET_VERSION}-devel \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_CURRENT_VERSION}-devel \
+	${CONTAINER_BUILD_CONTEXT}
 
 runtime:
 	buildah build \
-		-f zenoh-pico-runtime/Dockerfile \
-		--build-arg ZENOH_PICO_IMAGE_NAME=${ZENOH_PICO_IMAGE_NAME} \
-		--build-arg ZENOH_PICO_VERSION=${ZENOH_PICO_CURRENT_VERSION} \
+		-f bazalt-devel/Dockerfile \
+		--build-arg BAZALT_IMAGE_REGISTRY=${BAZALT_IMAGE_REGISTRY} \
+		--build-arg BAZALT_IMAGE_NAME=${BAZALT_IMAGE_NAME} \
+		--build-arg BAZALT_VERSION=${BAZALT_CURRENT_VERSION} \
 		--format oci \
 		--layers=true \
-		--target zenoh-pico-downloader \
-		--tag ${ZENOH_PICO_IMAGE_NAME}:${ZENOH_PICO_TARGET_VERSION} \
-		--tag ${ZENOH_PICO_IMAGE_NAME}:${ZENOH_PICO_CURRENT_VERSION} \
-		--tag ${ZENOH_PICO_IMAGE_NAME}:${ZENOH_PICO_TARGET_VERSION}-runtime \
-		--tag ${ZENOH_PICO_IMAGE_NAME}:${ZENOH_PICO_CURRENT_VERSION}-runtime \
-	${CONTAINER_BUILD_CONTEXT_ROOT}/zenoh-pico-runtime
+		--target bazalt-runtime \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_TARGET_VERSION} \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_CURRENT_VERSION} \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_TARGET_VERSION}-runtime \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_CURRENT_VERSION}-runtime \
+	${CONTAINER_BUILD_CONTEXT}

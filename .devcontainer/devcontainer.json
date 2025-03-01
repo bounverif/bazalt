@@ -1,0 +1,13 @@
+{
+  "name": "Bazalt",
+  "build": {
+    "dockerfile": "../containers/bazalt-devel/Dockerfile",
+    "context": "../containers",
+    "target": "bazalt-devel",
+    "args": {
+      "BAZALT_BUILDER_IMAGE": "bazalt-builder"
+    }
+  },
+  "postCreateCommand": "pre-commit install",
+  "remoteUser": "nonroot"
+}
