@@ -140,9 +140,9 @@ jobs:
       - name: Prepare environment variables
         run: |
           if [ "${{ env.BAZALT_VERSION }}" == "latest" ]; then
-            echo "BAZALT_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name')" >> $GITHUB_ENV
+            echo "BAZALT_VERSION=$(date +'%Y%m%d')" >> $GITHUB_ENV
           fi
-          echo "BAZALT_LATEST_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name')" >> $GITHUB_ENV
+          echo "BAZALT_LATEST_VERSION=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
       - name: Create and push manifest list for bazalt-builder
         run: |
