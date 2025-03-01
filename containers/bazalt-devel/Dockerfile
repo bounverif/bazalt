@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}
       gnupg2 \
       ca-certificates \
       && \
-    apt-get autoremove -y && rm -rf /var/lib/apt/lists/* 
+    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 ARG BAZALT_BUILD_ZENOH_PICO_VERSION
 ENV BAZALT_BUILD_ZENOH_PICO_VERSION=${BAZALT_BUILD_ZENOH_PICO_VERSION}
@@ -86,10 +86,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}
     apt-get update -qq && \
     apt-get install -qy --no-install-recommends \
       sudo \
+      git \
+      openssh-client \
       clangd \
       clang-format \
       clang-tidy \
-      pre-commit \
       python3-minimal \
       python3-pip \
       && \
@@ -106,6 +107,14 @@ RUN groupadd --gid ${USER_GID} $USERNAME &&\
     chmod 0440 /etc/sudoers.d/${USERNAME}
 
 USER ${USERNAME}
+
+RUN python3 -m pip install --user --break-system-packages \
+      pre-commit \
+      cmakelang[YAML] \
+      && \
+    rm -rf /home/${USERNAME}/.cache/pip
+
+ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
 
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-runtime
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT

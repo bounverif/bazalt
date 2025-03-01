@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Example Usage: 
+# Example Usage:
 # BAZALT_BUILD_INSTALL_PREFIX=~/pb BAZALT_BUILD_PROTOBUF_VERSION=3.15.2 protobuf-install.sh all
 
 BAZALT_INSTALL_PREFIX=${BAZALT_INSTALL_PREFIX:-/usr/local}

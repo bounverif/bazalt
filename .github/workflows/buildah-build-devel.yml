@@ -73,7 +73,7 @@ jobs:
           context: ./containers/bazalt-devel
           image: bazalt
           tags: |
-            ${{ env.BAZALT_VERSION }}-builder 
+            ${{ env.BAZALT_VERSION }}-builder
             ${{ env.BAZALT_VERSION }}-builder-${{ env.PODMAN_ARCH }}
           layers: true
           oci: true
@@ -169,7 +169,7 @@ jobs:
           done
           buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.BAZALT_VERSION }}-builder
           if [ "${{ env.BAZALT_VERSION }}" == "${{ env.BAZALT_LATEST_VERSION }}" ]; then
-            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-builder 
+            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-builder
           fi
 
       - name: Create and push manifest list for bazalt-devel
@@ -183,5 +183,5 @@ jobs:
           done
           buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.BAZALT_VERSION }}-devel
           if [ "${{ env.BAZALT_VERSION }}" == "${{ env.BAZALT_LATEST_VERSION }}" ]; then
-            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-devel 
+            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-devel
           fi
