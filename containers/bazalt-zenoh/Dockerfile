@@ -38,5 +38,5 @@ RUN /usr/local/bin/zenoh-pico-install.sh devel
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-zenoh-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
-COPY --from=bazalt-zenoh-builder /usr/local/lib/libzenoh* /usr/local/lib/
+COPY --from=bazalt-zenoh-builder /usr/local/lib/ /usr/local/lib/
 COPY --from=bazalt-zenoh-builder /usr/local/include/ /usr/local/include/
