@@ -48,3 +48,4 @@ FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-boost
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
 COPY --from=bazalt-boost-builder /usr/local/lib/libboost* /usr/local/lib/
+COPY --from=bazalt-boost-builder /usr/local/include/boost/ /usr/local/include/boost/

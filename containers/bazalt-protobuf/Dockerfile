@@ -38,3 +38,4 @@ FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-protobuf
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
 COPY --from=bazalt-protobuf-builder /usr/local/lib/libproto* /usr/local/lib/
+COPY --from=bazalt-protobuf-builder /usr/local/include/google/ /usr/local/include/google/
