@@ -37,5 +37,4 @@ RUN /usr/local/bin/protobuf-install.sh devel
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-protobuf-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
-COPY --from=bazalt-protobuf-builder /usr/local/lib/ /usr/local/lib/
-COPY --from=bazalt-protobuf-builder /usr/local/include/ /usr/local/include/
+COPY --from=bazalt-protobuf-builder /usr/local/ /usr/local/
