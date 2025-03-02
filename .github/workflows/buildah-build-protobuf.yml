@@ -125,7 +125,7 @@ jobs:
           MANIFEST=bazalt-protobuf
           FULL_IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           buildah manifest create $MANIFEST
-          for digest in ${{ runner.temp }}/digests/digest-bazalt-protobuf-*; do
+          for digest in ${{ runner.temp }}/digests/digest-bazalt-protobuf-${{ env.PROTOBUF_VERSION }}-*; do
             echo "Adding $(cat $digest)"
             buildah manifest add $MANIFEST $FULL_IMAGE_NAME@$(cat $digest)
           done
