@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
-        version: ["3.21.12", "5.29.3"]
+        version: ["3.21.12", "4.25.6", "5.29.3"]
     runs-on: ${{ matrix.os }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.version }}-${{ matrix.os }}
@@ -97,11 +97,11 @@ jobs:
     name: Merge container images
     runs-on: ubuntu-24.04
     needs: buildah-build
+    if: github.ref == 'refs/heads/main' && always()
     strategy:
       fail-fast: false
       matrix:
-        version: ["3.21.12", "5.29.3"]
-    if: github.ref == 'refs/heads/main' && always()
+        version: ["3.21.12", "4.25.6", "5.29.3"]
     steps:
       - name: Download digests
         uses: actions/download-artifact@v4
