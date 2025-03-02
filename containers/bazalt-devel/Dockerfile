@@ -1,46 +1,20 @@
 ARG BAZALT_VERSION=latest
 ARG BAZALT_DEBIAN_VERSION=12
 ARG BAZALT_IMAGE_REGISTRY=localhost
+ARG BAZALT_IMAGE_REGISTRY_REMOTE=${BAZALT_IMAGE_REGISTRY}
 ARG BAZALT_IMAGE_NAME=bazalt
+ARG BAZALT_IMAGE_NAME_FULL=${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}
 ARG BAZALT_IMAGE_VERSION=${BAZALT_VERSION}
-ARG BAZALT_BUILDER_IMAGE=${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_IMAGE_VERSION}-builder
-ARG BAZALT_DEVEL_IMAGE=${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_IMAGE_VERSION}-devel
+ARG BAZALT_BUILDER_IMAGE=${BAZALT_IMAGE_NAME_FULL}:${BAZALT_IMAGE_VERSION}-builder
+ARG BAZALT_DEVEL_IMAGE=${BAZALT_IMAGE_NAME_FULL}:${BAZALT_IMAGE_VERSION}-devel
 
+# Packaged dependencies
+ARG BAZALT_BUILD_BOOST_VERSION=1.87.0
 ARG BAZALT_BUILD_ZENOH_VERSION=1.2.1
-ARG BAZALT_BUILD_ZENOH_PICO_VERSION=${BAZALT_BUILD_ZENOH_VERSION}
 ARG BAZALT_BUILD_PROTOBUF_VERSION=3.21.12
-
-FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-downloader
-ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
-
-# Install predependencies
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
-    export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update -qq && \
-    apt-get install -qy --no-install-recommends \
-      wget \
-      unzip \
-      git-core \
-      jq \
-      gnupg2 \
-      ca-certificates \
-      && \
-    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
-
-ARG BAZALT_BUILD_ZENOH_PICO_VERSION
-ENV BAZALT_BUILD_ZENOH_PICO_VERSION=${BAZALT_BUILD_ZENOH_PICO_VERSION}
-
-RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        export BAZALT_BUILD_ZENOH_ARCH="x64"; \
-    elif [ "$TARGETARCH" = "arm64" ]; then \
-        export BAZALT_BUILD_ZENOH_ARCH="arm64"; \
-    fi && \
-    wget -q https://github.com/eclipse-zenoh/zenoh-pico/releases/download/${BAZALT_BUILD_ZENOH_PICO_VERSION}/zenoh-pico-${BAZALT_BUILD_ZENOH_PICO_VERSION}-linux-${BAZALT_BUILD_ZENOH_ARCH}-standalone.zip -O /tmp/zenoh-pico.zip && \
-    unzip /tmp/zenoh-pico.zip -d /tmp/zenoh-pico && \
-    mv /tmp/zenoh-pico/include /usr/local && \
-    mv /tmp/zenoh-pico/lib /usr/local && \
-    rm /tmp/zenoh-pico.zip && \
-    rm -rf /tmp/zenoh-pico
+FROM ${BAZALT_IMAGE_REGISTRY_REMOTE}/bazalt-boost:${BAZALT_BUILD_BOOST_VERSION}-devel AS bazalt-boost
+FROM ${BAZALT_IMAGE_REGISTRY_REMOTE}/bazalt-protobuf:${BAZALT_BUILD_PROTOBUF_VERSION}-devel AS bazalt-protobuf
+FROM ${BAZALT_IMAGE_REGISTRY_REMOTE}/bazalt-zenoh:${BAZALT_BUILD_ZENOH_VERSION}-devel AS bazalt-zenoh
 
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-builder
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
@@ -53,30 +27,30 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}
       wget \
       tar \
       unzip \
+      jq \
       gnupg2 \
       ca-certificates \
       git-core \
       build-essential \
-      ninja-build \
       cmake \
-      pkg-config \
+      ninja-build \
+      python3-minimal \
+      python3-pip \
       && \
     apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
+
+ARG BAZALT_BUILD_BOOST_VERSION
+ENV BAZALT_BUILD_BOOST_VERSION=${BAZALT_BUILD_BOOST_VERSION}
+COPY --from=bazalt-boost /usr/local/ /usr/local/
+
 ARG BAZALT_BUILD_PROTOBUF_VERSION
 ENV BAZALT_BUILD_PROTOBUF_VERSION=${BAZALT_BUILD_PROTOBUF_VERSION}
-COPY --chmod=755 scripts/protobuf-install.sh /usr/local/bin/protobuf-install.sh
-RUN /usr/local/bin/protobuf-install.sh devel
+COPY --from=bazalt-protobuf /usr/local/ /usr/local/
 
-ARG BAZALT_BUILD_ZENOH_PICO_VERSION
-ENV BAZALT_BUILD_ZENOH_PICO_VERSION=${BAZALT_BUILD_ZENOH_PICO_VERSION}
-COPY --chmod=755 scripts/zenoh-pico-install.sh /usr/local/bin/zenoh-pico-install.sh
-RUN /usr/local/bin/zenoh-pico-install.sh devel
-
-ARG BAZALT_BUILD_SPDLOG_VERSION
-ENV BAZALT_BUILD_SPDLOG_VERSION=${BAZALT_BUILD_SPDLOG_VERSION}
-COPY --chmod=755 scripts/spdlog-install.sh /usr/local/bin/spdlog-install.sh
-RUN /usr/local/bin/spdlog-install.sh
+ARG BAZALT_BUILD_ZENOH_VERSION
+ENV BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION}
+COPY --from=bazalt-zenoh /usr/local/ /usr/local/
 
 FROM ${BAZALT_BUILDER_IMAGE} AS bazalt-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
@@ -107,24 +81,14 @@ RUN groupadd --gid ${USER_GID} $USERNAME &&\
     chmod 0440 /etc/sudoers.d/${USERNAME}
 
 USER ${USERNAME}
+WORKDIR /home/${USERNAME}
 
-RUN python3 -m pip install --user --break-system-packages \
+RUN python3 -m pip install --user --break-system-packages --no-cache-dir \
       pre-commit \
       cmakelang[YAML] \
       && \
     rm -rf /home/${USERNAME}/.cache/pip
 
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
-
-FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-runtime
-ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
-
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
-    export DEBIAN_FRONTEND=noninteractive && \
-    apt-get update -qq && \
-    apt-get install -qy --no-install-recommends \
-      systemd \
-      && \
-    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
-
-COPY --from=bazalt-builder /usr/local/lib/*.so /usr/local/lib/
