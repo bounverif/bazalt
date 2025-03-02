@@ -65,6 +65,7 @@ jobs:
           oci: true
           build-args: |
             BAZALT_VERSION=${{ env.BAZALT_VERSION }}
+            BAZALT_IMAGE_REGISTRY_REMOTE=${{ env.REGISTRY }}
           extra-args: |
             --target bazalt-builder
           containerfiles: |
@@ -81,6 +82,7 @@ jobs:
           oci: true
           build-args: |
             BAZALT_VERSION=${{ env.BAZALT_VERSION }}
+            BAZALT_IMAGE_REGISTRY_REMOTE=${{ env.REGISTRY }}
           extra-args: |
             --target bazalt-devel
           containerfiles: |
