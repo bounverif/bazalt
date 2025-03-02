@@ -2,11 +2,12 @@ ARG BAZALT_VERSION=latest
 ARG BAZALT_DEBIAN_VERSION=12
 ARG BAZALT_IMAGE_REGISTRY=localhost
 ARG BAZALT_IMAGE_REGISTRY_REMOTE=${BAZALT_IMAGE_REGISTRY}
-ARG BAZALT_IMAGE_NAME=bazalt-protobuf
+ARG BAZALT_IMAGE_NAME=bazalt
 
-ARG BAZALT_BUILD_PROTOBUF_VERSION=latest
+ARG BAZALT_BUILD_ZENOH_VERSION=latest
+ARG BAZALT_IMAGE_VERSION=${BAZALT_BUILD_PROTOBUF_VERSION}
 
-FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-protobuf-builder
+FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-zenoh-builder
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
@@ -29,13 +30,13 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}
       && \
     apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-ARG BAZALT_BUILD_PROTOBUF_VERSION
-ENV BAZALT_BUILD_PROTOBUF_VERSION=${BAZALT_BUILD_PROTOBUF_VERSION}
-COPY --chmod=755 scripts/protobuf-install.sh /usr/local/bin/protobuf-install.sh
-RUN /usr/local/bin/protobuf-install.sh devel
+ARG BAZALT_BUILD_ZENOH_VERSION
+ENV BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION}
+COPY --chmod=755 scripts/zenoh-pico-install.sh /usr/local/bin/zenoh-pico-install.sh
+RUN /usr/local/bin/zenoh-pico-install.sh devel
 
-FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-protobuf-devel
+FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-zenoh-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
-COPY --from=bazalt-protobuf-builder /usr/local/lib/libproto* /usr/local/lib/
-COPY --from=bazalt-protobuf-builder /usr/local/include/ /usr/local/include/
+COPY --from=bazalt-zenoh-builder /usr/local/lib/libzenoh* /usr/local/lib/
+COPY --from=bazalt-zenoh-builder /usr/local/include/ /usr/local/include/

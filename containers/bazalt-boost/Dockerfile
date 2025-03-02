@@ -1,10 +1,10 @@
 ARG BAZALT_VERSION=latest
 ARG BAZALT_DEBIAN_VERSION=12
 ARG BAZALT_IMAGE_REGISTRY=localhost
-ARG BAZALT_IMAGE_NAME=bazalt
+ARG BAZALT_IMAGE_REGISTRY_REMOTE=${BAZALT_IMAGE_REGISTRY}
+ARG BAZALT_IMAGE_NAME=bazalt-boost
 
 ARG BAZALT_BUILD_BOOST_VERSION=latest
-ARG BAZALT_IMAGE_VERSION=${BAZALT_BUILD_BOOST_VERSION}-boost
 
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-boost-builder
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
@@ -48,4 +48,4 @@ FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-boost-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
 COPY --from=bazalt-boost-builder /usr/local/lib/libboost* /usr/local/lib/
-COPY --from=bazalt-boost-builder /usr/local/include/boost/ /usr/local/include/boost/
+COPY --from=bazalt-boost-builder /usr/local/include/ /usr/local/include/
