@@ -42,7 +42,7 @@ jobs:
           echo "PLATFORM=$(podman info --format='{{.Version.OsArch}}' | sed 's/\//-/g')" >> $GITHUB_ENV
           echo "PROTOBUF_VERSION=${{ matrix.version }}" >> $GITHUB_ENV
           if [ "${{ env.PROTOBUF_VERSION }}" == "latest" ]; then
-            echo "PROTOBUF_VERSION=${PROTOBUF_LATEST_VERSION} >> $GITHUB_ENV
+            echo "PROTOBUF_VERSION=${PROTOBUF_LATEST_VERSION}" >> $GITHUB_ENV
           fi
 
       - name: Checkout repository
@@ -117,7 +117,7 @@ jobs:
       - name: Prepare environment variables
         run: |
           if [ "${{ env.PROTOBUF_VERSION }}" == "latest" ]; then
-            echo "PROTOBUF_VERSION=${PROTOBUF_LATEST_VERSION} >> $GITHUB_ENV
+            echo "PROTOBUF_VERSION=${PROTOBUF_LATEST_VERSION}" >> $GITHUB_ENV
           fi
 
       - name: Create and push manifest list for bazalt-protobuf
