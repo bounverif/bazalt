@@ -58,7 +58,7 @@ jobs:
         uses: redhat-actions/buildah-build@v2
         with:
           context: ./containers
-          image: bazalt
+          image: ${{ env.IMAGE_NAME }}
           tags: |
             ${{ env.BOOST_VERSION }}-devel
             ${{ env.BOOST_VERSION }}-devel-${{ env.HOSTARCH }}
