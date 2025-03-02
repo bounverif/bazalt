@@ -47,4 +47,4 @@ RUN if [ "${BAZALT_BUILD_BOOST_VERSION}" = "latest" ]; then \
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-boost
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
-COPY --from=bazalt-boost-builder /usr/local/lib /usr/local/lib/
+COPY --from=bazalt-boost-builder /usr/local/lib/libboost* /usr/local/lib/
