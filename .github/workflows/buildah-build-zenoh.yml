@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - containers/bazalt-zenoh/**
+      - containers/scripts/zenoh-cpp-install.sh
+      - containers/scripts/zenoh-pico-install.sh
       - .github/workflows/buildah-build-zenoh.yml # Self-trigger
 
 env:
