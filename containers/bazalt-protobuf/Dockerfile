@@ -34,7 +34,7 @@ ENV BAZALT_BUILD_PROTOBUF_VERSION=${BAZALT_BUILD_PROTOBUF_VERSION}
 COPY --chmod=755 scripts/protobuf-install.sh /usr/local/bin/protobuf-install.sh
 RUN /usr/local/bin/protobuf-install.sh devel
 
-FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-protobuf
+FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-protobuf-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
 COPY --from=bazalt-protobuf-builder /usr/local/lib/libproto* /usr/local/lib/

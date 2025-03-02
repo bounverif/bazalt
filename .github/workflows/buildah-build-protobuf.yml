@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io/bounverif
-  IMAGE_NAME: bazalt
+  IMAGE_NAME: bazalt-protobuf
   HOSTARCH: amd64
   PLATFORM: linux-amd64
   PROTOBUF_VERSION: 3.21.12
@@ -56,20 +56,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build protobuf container image
-        id: build-protobuf
+        id: build-protobuf-devel
         uses: redhat-actions/buildah-build@v2
         with:
           context: ./containers
-          image: bazalt
+          image: ${{ env.IMAGE_NAME }}
           tags: |
-            ${{ env.PROTOBUF_VERSION }}-protobuf
-            ${{ env.PROTOBUF_VERSION }}-protobuf-${{ env.HOSTARCH }}
+            ${{ env.PROTOBUF_VERSION }}-devel
+            ${{ env.PROTOBUF_VERSION }}-devel-${{ env.HOSTARCH }}
           layers: true
           oci: true
           build-args: |
             BAZALT_BUILD_PROTOBUF_VERSION=${{ env.PROTOBUF_VERSION }}
           extra-args: |
-            --target bazalt-protobuf
+            --target bazalt-protobuf-devel
           containerfiles: |
             ./containers/bazalt-protobuf/Dockerfile
 
@@ -79,8 +79,8 @@ jobs:
         uses: redhat-actions/push-to-registry@v2
         with:
           registry: ${{ env.REGISTRY }}
-          image: ${{ steps.build-protobuf.outputs.image }}
-          tags: ${{ env.PROTOBUF_VERSION }}-protobuf-${{ env.HOSTARCH }}
+          image: ${{ steps.build-protobuf-devel.outputs.image }}
+          tags: ${{ env.PROTOBUF_VERSION }}-devel-${{ env.HOSTARCH }}
           digestfile: ${{ runner.temp }}/digest-devel-${{ env.PROTOBUF_VERSION }}-${{ env.PLATFORM }}
 
       - name: Upload digests
@@ -126,14 +126,14 @@ jobs:
 
       - name: Create and push manifest list for multi-arch images
         run: |
-          MANIFEST=bazalt-protobuf
+          MANIFEST=bazalt-protobuf-devel
           FULL_IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           buildah manifest create $MANIFEST
           for digest in ${{ runner.temp }}/digests/digest-devel-${{ env.PROTOBUF_VERSION }}-*; do
             echo "Adding $(cat $digest)"
             buildah manifest add $MANIFEST $FULL_IMAGE_NAME@$(cat $digest)
           done
-          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.PROTOBUF_VERSION }}-protobuf
+          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.PROTOBUF_VERSION }}-devel
           if [ "${{ env.PROTOBUF_VERSION }}" == "${{ env.PROTOBUF_LATEST_VERSION }}" ]; then
-            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-protobuf
+            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-devel
           fi
