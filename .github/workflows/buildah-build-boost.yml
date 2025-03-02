@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io/bounverif
-  IMAGE_NAME: bazalt
+  IMAGE_NAME: bazalt-boost
   HOSTARCH: amd64
   PLATFORM: linux-amd64
   BOOST_VERSION: latest
@@ -54,20 +54,20 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Boost container image
-        id: build-boost
+        id: build-boost-devel
         uses: redhat-actions/buildah-build@v2
         with:
           context: ./containers
           image: bazalt
           tags: |
-            ${{ env.BOOST_VERSION }}-boost
-            ${{ env.BOOST_VERSION }}-boost-${{ env.HOSTARCH }}
+            ${{ env.BOOST_VERSION }}-devel
+            ${{ env.BOOST_VERSION }}-devel-${{ env.HOSTARCH }}
           layers: true
           oci: true
           build-args: |
             BAZALT_BUILD_BOOST_VERSION=${{ env.BOOST_VERSION }}
           extra-args: |
-            --target bazalt-boost
+            --target bazalt-boost-devel
           containerfiles: |
             ./containers/bazalt-boost/Dockerfile
 
@@ -77,8 +77,8 @@ jobs:
         uses: redhat-actions/push-to-registry@v2
         with:
           registry: ${{ env.REGISTRY }}
-          image: ${{ steps.build-boost.outputs.image }}
-          tags: ${{ env.BOOST_VERSION }}-boost-${{ env.HOSTARCH }}
+          image: ${{ steps.build-boost-devel.outputs.image }}
+          tags: ${{ env.BOOST_VERSION }}-devel-${{ env.HOSTARCH }}
           digestfile: ${{ runner.temp }}/digest-devel-${{ env.BOOST_VERSION }}-${{ env.PLATFORM }}
 
       - name: Upload digests
@@ -128,7 +128,7 @@ jobs:
             echo "Adding $(cat $digest)"
             buildah manifest add $MANIFEST $FULL_IMAGE_NAME@$(cat $digest)
           done
-          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.BOOST_VERSION }}-boost
+          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.BOOST_VERSION }}-devel
           if [ "${{ env.BOOST_VERSION }}" == "${{ env.BOOST_LATEST_VERSION }}" ]; then
-            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-boost
+            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-devel
           fi
