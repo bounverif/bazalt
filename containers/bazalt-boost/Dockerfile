@@ -34,16 +34,15 @@ ENV BAZALT_BUILD_BOOST_VERSION=${BAZALT_BUILD_BOOST_VERSION}
 RUN if [ "${BAZALT_BUILD_BOOST_VERSION}" = "latest" ]; then \
       BAZALT_BUILD_BOOST_VERSION_RAW="$(curl -s https://api.github.com/repos/boostorg/boost/releases/latest | jq -r .tag_name)"; \
       BAZALT_BUILD_BOOST_VERSION="$(echo "${BAZALT_BUILD_BOOST_VERSION_RAW}" | sed -E 's/^boost-//')"; \
-    fi
-    # && \
-    # git clone -j$(nproc) --recursive --depth 1 --branch boost-${BAZALT_BUILD_BOOST_VERSION} "https://github.com/boostorg/boost.git" /tmp/boost && \
-    # cd /tmp/boost && \
-    # git checkout boost-${BAZALT_BUILD_BOOST_VERSION}; \
-    # mkdir -p /etc/bazalt && \
-    # printf "%s\\n" "$(git tag --points-at HEAD)" >> /etc/bazalt/BOOST_VERSION && \
-    # ./bootstrap.sh --prefix=/usr/local --without-libraries=python &&\
-    # ./b2 link=static cxxflags=-fPIC cflags=-fPIC -j$(nproc) install &&\
-    # cd / && rm -rf /tmp/boost
+    fi && \
+    git clone -j$(nproc) --recursive --depth 1 --branch boost-${BAZALT_BUILD_BOOST_VERSION} "https://github.com/boostorg/boost.git" /tmp/boost && \
+    cd /tmp/boost && \
+    git checkout boost-${BAZALT_BUILD_BOOST_VERSION}; \
+    mkdir -p /etc/bazalt && \
+    printf "%s\\n" "$(git tag --points-at HEAD)" >> /etc/bazalt/BOOST_VERSION && \
+    ./bootstrap.sh --prefix=/usr/local --without-libraries=python &&\
+    ./b2 link=static cxxflags=-fPIC cflags=-fPIC -j$(nproc) install &&\
+    cd / && rm -rf /tmp/boost
 
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-boost
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
