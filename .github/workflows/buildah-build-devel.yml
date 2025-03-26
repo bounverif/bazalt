@@ -88,6 +88,23 @@ jobs:
           containerfiles: |
             ./containers/bazalt-devel/Dockerfile
 
+      - name: Build runtime container image
+        id: build-runtime
+        uses: redhat-actions/buildah-build@v2
+        with:
+          context: ./containers
+          image: bazalt
+          tags: ${{ env.BAZALT_VERSION }}-runtime ${{ env.BAZALT_VERSION }}-runtime-${{ env.PODMAN_ARCH }}
+          layers: true
+          oci: true
+          build-args: |
+            BAZALT_VERSION=${{ env.BAZALT_VERSION }}
+            BAZALT_IMAGE_REGISTRY_REMOTE=${{ env.REGISTRY }}
+          extra-args: |
+            --target bazalt-runtime
+          containerfiles: |
+            ./containers/bazalt-devel/Dockerfile
+
       - name: Push to GitHub Container Repository
         if: github.ref == 'refs/heads/main'
         id: push-builder-ghcr
@@ -107,6 +124,16 @@ jobs:
           image: ${{ steps.build-devel.outputs.image }}
           tags: ${{ env.BAZALT_VERSION }}-devel-${{ env.PODMAN_ARCH }}
           digestfile: ${{ runner.temp }}/digest-bazalt-devel-${{ env.BAZALT_VERSION }}-${{ env.PLATFORM }}
+
+      - name: Push to GitHub Container Repository
+        if: github.ref == 'refs/heads/main'
+        id: push-runtime-ghcr
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ steps.build-devel.outputs.image }}
+          tags: ${{ env.BAZALT_VERSION }}-runtime-${{ env.PODMAN_ARCH }}
+          digestfile: ${{ runner.temp }}/digest-bazalt-runtime-${{ env.BAZALT_VERSION }}-${{ env.PLATFORM }}
 
       - name: Upload digests
         if: github.ref == 'refs/heads/main'
@@ -172,4 +199,18 @@ jobs:
           buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.BAZALT_VERSION }}-devel
           if [ "${{ env.BAZALT_VERSION }}" == "${{ env.BAZALT_LATEST_VERSION }}" ]; then
             buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-devel
+          fi
+
+      - name: Create and push manifest list for bazalt-runtime
+        run: |
+          MANIFEST=bazalt-runtime
+          FULL_IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          buildah manifest create $MANIFEST
+          for digest in ${{ runner.temp }}/digests/digest-bazalt-runtime-*; do
+            echo "Adding $(cat $digest)"
+            buildah manifest add $MANIFEST $FULL_IMAGE_NAME@$(cat $digest)
+          done
+          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.BAZALT_VERSION }}-runtime
+          if [ "${{ env.BAZALT_VERSION }}" == "${{ env.BAZALT_LATEST_VERSION }}" ]; then
+            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-runtime
           fi

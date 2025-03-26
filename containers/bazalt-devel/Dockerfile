@@ -92,3 +92,17 @@ RUN python3 -m pip install --user --break-system-packages --no-cache-dir \
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
+
+FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-runtime
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update -qq && \
+    apt-get install -qy --no-install-recommends \
+      sudo \
+      systemd \
+      && \
+    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+CMD ["/lib/systemd/systemd"]
