@@ -105,4 +105,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}
       && \
     apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
+COPY systemd/system/* /etc/systemd/system/
+
 CMD ["/lib/systemd/systemd"]
