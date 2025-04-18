@@ -50,21 +50,23 @@ COPY --from=bazalt-protobuf /usr/local/ /usr/local/
 
 ARG BAZALT_BUILD_ZENOH_VERSION
 ENV BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION}
-COPY --from=bazalt-zenoh /usr/local/ /usr/local/
+# COPY --from=bazalt-zenoh /usr/local/ /usr/local/
 
 # Install Zenoh from Debian repository
-# RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
-#     echo "deb [trusted=yes] https://download.eclipse.org/zenoh/debian-repo/ /" | tee -a /etc/apt/sources.list.d/zenoh.list > /dev/null &&\
-#     export DEBIAN_FRONTEND=noninteractive && \
-#     apt-get update -qq && \
-#     apt-get install -qy --no-install-recommends \
-#       zenoh \
-#       libzenohc \
-#       libzenohpico \
-#       libzenohc-dev \
-#       libzenohpico-dev \
-#       && \
-#     apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
+    echo "deb [trusted=yes] https://download.eclipse.org/zenoh/debian-repo/ /" | tee -a /etc/apt/sources.list.d/zenoh.list > /dev/null &&\
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update -qq && \
+    apt-get install -qy --no-install-recommends \
+      libzenohc=${BAZALT_BUILD_ZENOH_VERSION} \
+      libzenohpico=${BAZALT_BUILD_ZENOH_VERSION} \
+      libzenohc-dev=${BAZALT_BUILD_ZENOH_VERSION} \
+      libzenohpico-dev=${BAZALT_BUILD_ZENOH_VERSION} \
+      libzenohcpp-dev=${BAZALT_BUILD_ZENOH_VERSION} \
+      zenoh=${BAZALT_BUILD_ZENOH_VERSION} \
+      zenoh-plugin-rest=${BAZALT_BUILD_ZENOH_VERSION} \
+      && \
+    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
     export DEBIAN_FRONTEND=noninteractive && \
