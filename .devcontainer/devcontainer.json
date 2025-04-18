@@ -5,7 +5,35 @@
     "context": "../containers",
     "target": "bazalt-devel",
     "args": {
-      "BAZALT_BUILDER_IMAGE": "bazalt-builder"
+      "BAZALT_VERSION": "latest",
+      "BAZALT_BUILDER_IMAGE": "bazalt-devel",
+      "BAZALT_IMAGE_REGISTRY_REMOTE": "ghcr.io/bounverif"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "EditorConfig.EditorConfig",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "cheshirekow.cmake-format",
+        "esbenp.prettier-vscode",
+        "github.vscode-github-actions",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        "clangd.arguments": [
+          "--background-index",
+          "--completion-style=bundled",
+          "--header-insertion=iwyu",
+          "--header-insertion-decorators",
+          "--clang-tidy",
+          "--all-scopes-completion",
+          "--compile-commands-dir=/tmp/build/bazalt"
+        ],
+        "gcovViewer.highlightMissedLines": true,
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true
+      }
     }
   },
   "postCreateCommand": "pre-commit install",

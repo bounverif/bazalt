@@ -9,8 +9,8 @@ ARG BAZALT_BUILDER_IMAGE=${BAZALT_IMAGE_NAME_FULL}:${BAZALT_IMAGE_VERSION}-build
 ARG BAZALT_DEVEL_IMAGE=${BAZALT_IMAGE_NAME_FULL}:${BAZALT_IMAGE_VERSION}-devel
 
 # Packaged dependencies
-ARG BAZALT_BUILD_BOOST_VERSION=1.87.0
-ARG BAZALT_BUILD_ZENOH_VERSION=1.2.1
+ARG BAZALT_BUILD_BOOST_VERSION=1.88.0
+ARG BAZALT_BUILD_ZENOH_VERSION=1.3.3
 ARG BAZALT_BUILD_PROTOBUF_VERSION=3.21.12
 FROM ${BAZALT_IMAGE_REGISTRY_REMOTE}/bazalt-boost:${BAZALT_BUILD_BOOST_VERSION}-devel AS bazalt-boost
 FROM ${BAZALT_IMAGE_REGISTRY_REMOTE}/bazalt-protobuf:${BAZALT_BUILD_PROTOBUF_VERSION}-devel AS bazalt-protobuf
@@ -48,9 +48,35 @@ ARG BAZALT_BUILD_PROTOBUF_VERSION
 ENV BAZALT_BUILD_PROTOBUF_VERSION=${BAZALT_BUILD_PROTOBUF_VERSION}
 COPY --from=bazalt-protobuf /usr/local/ /usr/local/
 
-ARG BAZALT_BUILD_ZENOH_VERSION
-ENV BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION}
-COPY --from=bazalt-zenoh /usr/local/ /usr/local/
+# ARG BAZALT_BUILD_ZENOH_VERSION
+# ENV BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION}
+
+# Install Zenoh from
+# COPY --from=bazalt-zenoh /usr/local/ /usr/local/
+
+# Install Zenoh from Debian repository
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
+    echo "deb [trusted=yes] https://download.eclipse.org/zenoh/debian-repo/ /" | sudo tee -a /etc/apt/sources.list.d/zenoh.list > /dev/null &&\
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update -qq && \
+    apt-get install -qy --no-install-recommends \
+      zenoh \
+      libzenohc \
+      libzenohpico \
+      libzenohc-dev \
+      libzenohpico-dev \
+      && \
+    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update -qq && \
+    apt-get install -qy --no-install-recommends \
+      libsystemd-dev \
+      libspdlog-dev \
+      libnanopb-dev \
+      && \
+    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 FROM ${BAZALT_BUILDER_IMAGE} AS bazalt-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
