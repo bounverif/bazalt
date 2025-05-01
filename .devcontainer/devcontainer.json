@@ -6,7 +6,7 @@
     "target": "bazalt-devel",
     "args": {
       "BAZALT_VERSION": "latest",
-      "BAZALT_BUILDER_IMAGE": "bazalt-devel",
+      "BAZALT_BUILDER_IMAGE": "bazalt-builder",
       "BAZALT_IMAGE_REGISTRY_REMOTE": "ghcr.io/bounverif"
     }
   },
