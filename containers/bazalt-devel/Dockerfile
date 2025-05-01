@@ -10,7 +10,7 @@ ARG BAZALT_DEVEL_IMAGE=${BAZALT_IMAGE_NAME_FULL}:${BAZALT_IMAGE_VERSION}-devel
 
 # Packaged dependencies
 ARG BAZALT_BUILD_BOOST_VERSION=1.88.0
-ARG BAZALT_BUILD_ZENOH_VERSION=1.3.3
+ARG BAZALT_BUILD_ZENOH_VERSION=1.3.4
 ARG BAZALT_BUILD_PROTOBUF_VERSION=3.21.12
 FROM ${BAZALT_IMAGE_REGISTRY_REMOTE}/bazalt-boost:${BAZALT_BUILD_BOOST_VERSION}-devel AS bazalt-boost
 FROM ${BAZALT_IMAGE_REGISTRY_REMOTE}/bazalt-protobuf:${BAZALT_BUILD_PROTOBUF_VERSION}-devel AS bazalt-protobuf
@@ -132,5 +132,52 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}
     apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 COPY systemd/system/* /etc/systemd/system/
+
+CMD ["/lib/systemd/systemd"]
+
+FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-router
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update -qq && \
+    apt-get install -qy --no-install-recommends \
+      sudo \
+      curl \
+      ca-certificates \
+      && \
+    apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+ARG BAZALT_BUILD_ZENOH_VERSION
+ENV BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION}
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
+    echo "deb [trusted=yes] https://download.eclipse.org/zenoh/debian-repo/ /" | tee -a /etc/apt/sources.list.d/zenoh.list > /dev/null &&\
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update -qq && \
+    apt-get install -qy --no-install-recommends \
+      libzenohc=${BAZALT_BUILD_ZENOH_VERSION} \
+      zenoh=${BAZALT_BUILD_ZENOH_VERSION} \
+      zenoh-plugin-rest=${BAZALT_BUILD_ZENOH_VERSION} \
+      && \
+    apt-get autoremove -y && rm -rf /var/lib/apt/lists/* && \
+    # Configure zenohd without systemctl
+    useradd -r -s /bin/false zenohd && \
+    mkdir -p /var/zenohd && \
+    chown zenohd:zenohd /var/zenohd
+
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}/var/cache/apt \
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update -qq && \
+    apt-get install -qy --no-install-recommends \
+      systemd \
+      && \
+    apt-get autoremove -y && rm -rf /var/lib/apt/lists/* && \
+    echo 'root:root' | chpasswd
+
+COPY etc/zenohd/zenohd.json5 /etc/zenohd/zenohd.json5
+COPY systemd/system/* /etc/systemd/system/
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
 
 CMD ["/lib/systemd/systemd"]

@@ -58,6 +58,20 @@ runtime:
 		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_CURRENT_VERSION}-runtime \
 	${CONTAINER_BUILD_CONTEXT}
 
+router:
+	buildah build \
+		-f bazalt-devel/Dockerfile \
+		--build-arg BAZALT_IMAGE_REGISTRY=${BAZALT_IMAGE_REGISTRY} \
+		--build-arg BAZALT_IMAGE_REGISTRY_REMOTE=${BAZALT_IMAGE_REGISTRY_REMOTE} \
+		--build-arg BAZALT_IMAGE_NAME=${BAZALT_IMAGE_NAME} \
+		--build-arg BAZALT_VERSION=${BAZALT_CURRENT_VERSION} \
+		--format oci \
+		--layers=true \
+		--target bazalt-router \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_TARGET_VERSION}-router \
+		--tag ${BAZALT_IMAGE_REGISTRY}/${BAZALT_IMAGE_NAME}:${BAZALT_CURRENT_VERSION}-router \
+	${CONTAINER_BUILD_CONTEXT}
+
 boost:
 	buildah build \
 		-f bazalt-boost/Dockerfile \
