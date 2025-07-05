@@ -35,13 +35,13 @@ jobs:
 
     steps:
       - name: Install container tools
-        run: sudo apt-get install podman buildah jq
+        run: apt-get install -y podman buildah jq
 
       - name: Prepare environment variables
         run: |
           echo "HOSTARCH=$(podman info --format='{{.Host.Arch}}')" >> $GITHUB_ENV
           echo "PLATFORM=$(podman info --format='{{.Version.OsArch}}' | sed 's/\//-/g')" >> $GITHUB_ENV
-          echo "ZENOH_VERSION=${{ matrix.version }} >> $GITHUB_ENV
+          echo "ZENOH_VERSION=${{ matrix.version }}" >> $GITHUB_ENV
           echo "ZENOH_LATEST_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name'd )" >> $GITHUB_ENV
 
       - name: Checkout repository
