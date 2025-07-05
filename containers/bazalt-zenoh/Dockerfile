@@ -34,14 +34,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=${TARGETPLATFORM}
     apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 # Install rustup (Rust installer) and add to PATH
-ENV RUSTUP_HOME=/usr/local/rustup
-ENV CARGO_HOME=/usr/local/cargo
-ENV PATH=/usr/local/cargo/bin:$PATH
+ENV RUSTUP_HOME=/opt/rustup
+ENV CARGO_HOME=/opt/cargo
+ENV PATH=$CARGO_HOME/bin:$PATH
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-
-# Ensure the PATH is set correctly for future use
-ENV PATH=$CARGO_HOME/bin:$PATH
 
 # Optional: Pre-install common Rust components/tools
 RUN rustup install stable && \
@@ -63,7 +60,9 @@ RUN /usr/local/bin/zenoh-cpp-install.sh devel
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-zenoh-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
-COPY --from=bazalt-zenoh-builder /usr/local/ /usr/local/
+COPY --from=bazalt-zenoh-builder /usr/local \
+      /usr/local/include \
+      /usr/local/lib/
 
 FROM docker.io/library/debian:${BAZALT_DEBIAN_VERSION} AS bazalt-zenoh-release
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
