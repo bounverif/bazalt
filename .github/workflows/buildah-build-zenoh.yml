@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Install container tools
-        run: apt-get install -y podman buildah jq
+        run: sudo apt-get install -y podman buildah jq
 
       - name: Prepare environment variables
         run: |
