@@ -3,7 +3,6 @@
 BAZALT_INSTALL_PREFIX=${BAZALT_INSTALL_PREFIX:-/usr/local}
 BAZALT_BUILD_INSTALL_PREFIX=${BAZALT_BUILD_INSTALL_PREFIX:-${BAZALT_INSTALL_PREFIX}}
 BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION:-latest}
-BAZALT_BUILD_ZENOH_PICO_VERSION=${BAZALT_BUILD_ZENOH_VERSION:-latest}
 BAZALT_BUILD_ZENOH_PICO_SOURCE_DIR="/tmp/zenoh-pico"
 BAZALT_BUILD_ZENOH_PICO_BUILD_DIR="/tmp/build/zenoh-pico"
 BAZALT_BUILD_ZENOH_PICO_SOURCE_REPOSITORY_URL="https://github.com/eclipse-zenoh/zenoh-pico"
@@ -11,13 +10,13 @@ BAZALT_BUILD_ZENOH_PICO_BUILD_STATIC_LIBS=ON
 BAZALT_BUILD_ZENOH_PICO_BUILD_SHARED_LIBS=OFF
 
 clone(){
-  if [ "${BAZALT_BUILD_ZENOH_PICO_VERSION}" = "latest" ]; then
-      BAZALT_BUILD_ZENOH_PICO_VERSION="$(curl -s https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest | jq -r .tag_name)";
+  if [ "${BAZALT_BUILD_ZENOH_VERSION}" = "latest" ]; then
+      BAZALT_BUILD_ZENOH_VERSION="$(curl -s https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest | jq -r .tag_name)";
   fi
-  echo "Cloning Zenoh-Pico version ${BAZALT_BUILD_ZENOH_PICO_VERSION}..."
+  echo "Cloning Zenoh-Pico version ${BAZALT_BUILD_ZENOH_VERSION}..."
   git clone "${BAZALT_BUILD_ZENOH_PICO_SOURCE_REPOSITORY_URL}" "${BAZALT_BUILD_ZENOH_PICO_SOURCE_DIR}" \
     --depth 1 \
-    --branch "${BAZALT_BUILD_ZENOH_PICO_VERSION}"
+    --branch "${BAZALT_BUILD_ZENOH_VERSION}"
 }
 
 build_install(){
@@ -39,8 +38,8 @@ cmake --build ${BAZALT_BUILD_ZENOH_PICO_BUILD_DIR} --target install
 
 build_install_shared(){
   build_install
-  mv "${BAZALT_BUILD_INSTALL_PREFIX}/lib/libzenohpico.so" "${BAZALT_BUILD_INSTALL_PREFIX}/lib/libzenohpico.so.${BAZALT_BUILD_ZENOH_PICO_VERSION}"
-  cd "${BAZALT_BUILD_INSTALL_PREFIX}/lib" && ln -s "libzenoh-pico.so.${BAZALT_BUILD_ZENOH_PICO_VERSION}" libzenohpico.so
+  mv "${BAZALT_BUILD_INSTALL_PREFIX}/lib/libzenohpico.so" "${BAZALT_BUILD_INSTALL_PREFIX}/lib/libzenohpico.so.${BAZALT_BUILD_ZENOH_VERSION}"
+  cd "${BAZALT_BUILD_INSTALL_PREFIX}/lib" && ln -s "libzenoh-pico.so.${BAZALT_BUILD_ZENOH_VERSION}" libzenohpico.so
 }
 
 cleanup(){

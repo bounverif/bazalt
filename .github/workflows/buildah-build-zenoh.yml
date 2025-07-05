@@ -27,9 +27,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
+        version: ["1.4.0"]
     runs-on: ${{ matrix.os }}
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.os }}
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.version }}-${{ matrix.os }}
       cancel-in-progress: true
 
     steps:
@@ -40,9 +41,7 @@ jobs:
         run: |
           echo "HOSTARCH=$(podman info --format='{{.Host.Arch}}')" >> $GITHUB_ENV
           echo "PLATFORM=$(podman info --format='{{.Version.OsArch}}' | sed 's/\//-/g')" >> $GITHUB_ENV
-          if [ "${{ env.ZENOH_VERSION }}" == "latest" ]; then
-            echo "ZENOH_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name' )" >> $GITHUB_ENV
-          fi
+          echo "ZENOH_VERSION=${{ matrix.version }} >> $GITHUB_ENV
           echo "ZENOH_LATEST_VERSION=$(curl -sL "https://api.github.com/repos/eclipse-zenoh/zenoh-pico/releases/latest" | jq -r '.tag_name'd )" >> $GITHUB_ENV
 
       - name: Checkout repository
