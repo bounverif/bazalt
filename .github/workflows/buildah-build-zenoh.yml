@@ -73,15 +73,71 @@ jobs:
           containerfiles: |
             ./containers/bazalt-zenoh/Dockerfile
 
+      - name: Build Zenoh container image
+        id: build-zenoh-release
+        uses: redhat-actions/buildah-build@v2
+        with:
+          context: ./containers
+          image: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.ZENOH_VERSION }}-release
+            ${{ env.ZENOH_VERSION }}-release-${{ env.HOSTARCH }}
+          layers: true
+          oci: true
+          build-args: |
+            BAZALT_BUILD_ZENOH_VERSION=${{ env.ZENOH_VERSION }}
+          extra-args: |
+            --target bazalt-zenoh-release
+          containerfiles: |
+            ./containers/bazalt-zenoh/Dockerfile
+
+      - name: Build Zenoh container image
+        id: build-zenoh-release-devel
+        uses: redhat-actions/buildah-build@v2
+        with:
+          context: ./containers
+          image: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.ZENOH_VERSION }}-release-devel
+            ${{ env.ZENOH_VERSION }}-release-devel-${{ env.HOSTARCH }}
+          layers: true
+          oci: true
+          build-args: |
+            BAZALT_BUILD_ZENOH_VERSION=${{ env.ZENOH_VERSION }}
+          extra-args: |
+            --target bazalt-zenoh-release-devel
+          containerfiles: |
+            ./containers/bazalt-zenoh/Dockerfile
+
       - name: Push to GitHub Container Repository
         if: github.ref == 'refs/heads/main'
-        id: push-zenoh-ghcr
+        id: push-zenoh-devel-ghcr
         uses: redhat-actions/push-to-registry@v2
         with:
           registry: ${{ env.REGISTRY }}
           image: ${{ steps.build-zenoh-devel.outputs.image }}
           tags: ${{ env.ZENOH_VERSION }}-devel-${{ env.HOSTARCH }}
           digestfile: ${{ runner.temp }}/digest-devel-${{ env.ZENOH_VERSION }}-${{ env.PLATFORM }}
+
+      - name: Push to GitHub Container Repository
+        if: github.ref == 'refs/heads/main'
+        id: push-zenoh-release-ghcr
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ steps.build-zenoh-release.outputs.image }}
+          tags: ${{ env.ZENOH_VERSION }}-release-${{ env.HOSTARCH }}
+          digestfile: ${{ runner.temp }}/digest-release-${{ env.ZENOH_VERSION }}-${{ env.PLATFORM }}
+
+      - name: Push to GitHub Container Repository
+        if: github.ref == 'refs/heads/main'
+        id: push-zenoh-release-devel-ghcr
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ steps.build-zenoh-release.outputs.image }}
+          tags: ${{ env.ZENOH_VERSION }}-release-devel-${{ env.HOSTARCH }}
+          digestfile: ${{ runner.temp }}/digest-release-devel-${{ env.ZENOH_VERSION }}-${{ env.PLATFORM }}
 
       - name: Upload digests
         if: github.ref == 'refs/heads/main'
@@ -133,4 +189,32 @@ jobs:
           buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.ZENOH_VERSION }}-devel
           if [ "${{ env.ZENOH_VERSION }}" == "${{ env.ZENOH_LATEST_VERSION }}" ]; then
             buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-devel
+          fi
+
+      - name: Create and push manifest list for multi-arch images
+        run: |
+          MANIFEST=bazalt-zenoh-release
+          FULL_IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          buildah manifest create $MANIFEST
+          for digest in ${{ runner.temp }}/digests/digest-release-${{ env.ZENOH_VERSION }}-*; do
+            echo "Adding $(cat $digest)"
+            buildah manifest add $MANIFEST $FULL_IMAGE_NAME@$(cat $digest)
+          done
+          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.ZENOH_VERSION }}-release
+          if [ "${{ env.ZENOH_VERSION }}" == "${{ env.ZENOH_LATEST_VERSION }}" ]; then
+            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-release
+          fi
+
+      - name: Create and push manifest list for multi-arch images
+        run: |
+          MANIFEST=bazalt-zenoh-release-devel
+          FULL_IMAGE_NAME=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          buildah manifest create $MANIFEST
+          for digest in ${{ runner.temp }}/digests/digest-release-devel-${{ env.ZENOH_VERSION }}-*; do
+            echo "Adding $(cat $digest)"
+            buildah manifest add $MANIFEST $FULL_IMAGE_NAME@$(cat $digest)
+          done
+          buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:${{ env.ZENOH_VERSION }}-release-devel
+          if [ "${{ env.ZENOH_VERSION }}" == "${{ env.ZENOH_LATEST_VERSION }}" ]; then
+            buildah manifest push --all $MANIFEST docker://$FULL_IMAGE_NAME:latest-release-devel
           fi
