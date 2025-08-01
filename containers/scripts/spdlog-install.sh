@@ -1,3 +1,0 @@
-#!/bin/bash -e
-
-BAZALT_INSTALL_PREFIX=${BAZALT_INSTALL_PREFIX:-/usr/local}
