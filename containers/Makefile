@@ -6,7 +6,7 @@ BAZALT_CURRENT_VERSION ?= $(shell date +'%Y%m%d')
 
 BAZALT_BUILD_BOOST_VERSION ?= latest
 BAZALT_BUILD_PROTOBUF_VERSION ?= 3.21.12
-BAZALT_BUILD_ZENOH_VERSION ?= latest
+BAZALT_BUILD_ZENOH_VERSION ?= 1.5.0
 
 CONTAINER_BUILD_CONTEXT ?= .
 
@@ -112,4 +112,32 @@ zenoh:
 		--target bazalt-zenoh-builder \
 		--tag ${BAZALT_IMAGE_REGISTRY}/bazalt-zenoh:${BAZALT_BUILD_ZENOH_VERSION}-devel \
 		--tag ${BAZALT_IMAGE_REGISTRY}/bazalt-zenoh:${BAZALT_BUILD_ZENOH_VERSION}-devel \
+	${CONTAINER_BUILD_CONTEXT}
+
+zenoh-release:
+	buildah build \
+		-f bazalt-zenoh/Dockerfile \
+		--build-arg BAZALT_IMAGE_REGISTRY=${BAZALT_IMAGE_REGISTRY} \
+		--build-arg BAZALT_IMAGE_REGISTRY_REMOTE=${BAZALT_IMAGE_REGISTRY_REMOTE} \
+		--build-arg BAZALT_IMAGE_NAME=${BAZALT_IMAGE_NAME} \
+		--build-arg BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION} \
+		--format oci \
+		--layers=true \
+		--target bazalt-zenoh-release \
+		--tag ${BAZALT_IMAGE_REGISTRY}/bazalt-zenoh:${BAZALT_BUILD_ZENOH_VERSION}-release \
+		--tag ${BAZALT_IMAGE_REGISTRY}/bazalt-zenoh:${BAZALT_BUILD_ZENOH_VERSION}-release \
+	${CONTAINER_BUILD_CONTEXT}
+
+zenoh-release-devel:
+	buildah build \
+		-f bazalt-zenoh/Dockerfile \
+		--build-arg BAZALT_IMAGE_REGISTRY=${BAZALT_IMAGE_REGISTRY} \
+		--build-arg BAZALT_IMAGE_REGISTRY_REMOTE=${BAZALT_IMAGE_REGISTRY_REMOTE} \
+		--build-arg BAZALT_IMAGE_NAME=${BAZALT_IMAGE_NAME} \
+		--build-arg BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION} \
+		--format oci \
+		--layers=true \
+		--target bazalt-zenoh-release-devel \
+		--tag ${BAZALT_IMAGE_REGISTRY}/bazalt-zenoh:${BAZALT_BUILD_ZENOH_VERSION}-release-devel \
+		--tag ${BAZALT_IMAGE_REGISTRY}/bazalt-zenoh:${BAZALT_BUILD_ZENOH_VERSION}-release-devel \
 	${CONTAINER_BUILD_CONTEXT}

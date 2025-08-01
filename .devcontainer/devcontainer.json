@@ -1,41 +1,29 @@
 {
   "name": "Bazalt",
-  "build": {
-    "dockerfile": "../containers/bazalt-devel/Dockerfile",
-    "context": "../containers",
-    "target": "bazalt-devel",
-    "args": {
-      "BAZALT_VERSION": "latest",
-      "BAZALT_BUILDER_IMAGE": "bazalt-builder",
-      "BAZALT_IMAGE_REGISTRY_REMOTE": "ghcr.io/bounverif"
-    }
-  },
+  "image": "bazalt:latest-builder",
+  // "build": {
+  //   "context": "../containers",
+  //   "dockerfile": "../containers/bazalt-devel/Dockerfile",
+  //   "target": "bazalt-devel"
+  // },
   "customizations": {
     "vscode": {
       "extensions": [
         "EditorConfig.EditorConfig",
-        "llvm-vs-code-extensions.vscode-clangd",
-        "cheshirekow.cmake-format",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools",
         "esbenp.prettier-vscode",
-        "github.vscode-github-actions",
-        "GitHub.copilot"
+        "github.vscode-github-actions"
       ],
       "settings": {
-        "clangd.arguments": [
-          "--background-index",
-          "--completion-style=bundled",
-          "--header-insertion=iwyu",
-          "--header-insertion-decorators",
-          "--clang-tidy",
-          "--all-scopes-completion",
-          "--compile-commands-dir=/tmp/build/bazalt"
-        ],
-        "gcovViewer.highlightMissedLines": true,
+        "cmake.configureOnOpen": false,
+        "cmake.configureOnEdit": false,
+        "cmake.sourceDirectory": "${workspaceFolder}",
+        "cmake.buildDirectory": "/tmp/${workspaceFolderBasename}/build",
         "editor.formatOnSave": true,
         "editor.formatOnPaste": true
       }
     }
-  },
-  "postCreateCommand": "pre-commit install",
-  "remoteUser": "nonroot"
+  }
+  // "postCreateCommand": "pre-commit install"
 }
