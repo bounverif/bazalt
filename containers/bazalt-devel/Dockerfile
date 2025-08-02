@@ -9,41 +9,95 @@ ARG BAZALT_IMAGE_VERSION=${BAZALT_VERSION}
 ARG BAZALT_BUILDER_IMAGE=${BAZALT_IMAGE_NAME_FULL}:${BAZALT_IMAGE_VERSION}-builder
 ARG BAZALT_DEVEL_IMAGE=${BAZALT_IMAGE_NAME_FULL}:${BAZALT_IMAGE_VERSION}-devel
 
-ARG BAZALT_BUILD_BOOST_VERSION=1.88.0
-ARG BAZALT_BUILD_ZENOH_VERSION=1.5.0
-ARG BAZALT_BUILD_PROTOBUF_VERSION=5.29.5
+ARG BAZALT_BOOST_VERSION=1.88.0
+ARG BAZALT_ZENOH_VERSION=1.5.0
+ARG BAZALT_PROTOBUF_VERSION=6.31.1
+ARG BAZALT_FLATBUFFERS_VERSION=25.2.10
 
-FROM ${BAZALT_BASE_IMAGE} AS bazalt-builder
+FROM ${BAZALT_BASE_IMAGE} AS bazalt-builder-base
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
-ARG BAZALT_BUILD_BOOST_VERSION
-ENV BAZALT_BUILD_BOOST_VERSION=${BAZALT_BUILD_BOOST_VERSION}
+RUN dnf install -y \
+      ninja-build \
+      zlib-devel \
+      openssl-devel \
+      && \
+    dnf clean all
 
-ARG BAZALT_BUILD_PROTOBUF_VERSION
-ENV BAZALT_BUILD_PROTOBUF_VERSION=${BAZALT_BUILD_PROTOBUF_VERSION}
+ENV BAZALT_INSTALL_PREFIX="/opt/bazalt"
+RUN mkdir -p ${BAZALT_INSTALL_PREFIX}
 
-ARG BAZALT_BUILD_ZENOH_VERSION
-ENV BAZALT_BUILD_ZENOH_VERSION=${BAZALT_BUILD_ZENOH_VERSION}
+# Update environment paths for tools, headers, libraries, and build systems
+ENV PATH="${BAZALT_INSTALL_PREFIX}/bin:${PATH}" \
+    CPATH="${BAZALT_INSTALL_PREFIX}/include:${CPATH}" \
+    LD_LIBRARY_PATH="${BAZALT_INSTALL_PREFIX}/lib64:${BAZALT_INSTALL_PREFIX}/lib:${LD_LIBRARY_PATH}" \
+    PKG_CONFIG_PATH="${BAZALT_INSTALL_PREFIX}/lib64/pkgconfig:${BAZALT_INSTALL_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}" \
+    CMAKE_PREFIX_PATH="${BAZALT_INSTALL_PREFIX}:${CMAKE_PREFIX_PATH}"
 
+FROM bazalt-builder-base AS bazalt-builder-boost
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+ARG BAZALT_BOOST_VERSION
+ENV BAZALT_BOOST_VERSION=${BAZALT_BOOST_VERSION}
 RUN --mount=type=bind,source=./scripts/boost-source-cmake-install.sh,target=/container-build/scripts/boost-source-cmake-install.sh \
     . /container-build/scripts/boost-source-cmake-install.sh
 
-RUN --mount=type=bind,source=./scripts/protobuf-source-install.sh,target=/container-build/scripts/protobuf-source-install.sh \
-      BAZALT_PROTOBUF_BUILD_PROTOC_BINARIES="ON" \
-      BAZALT_PROTOBUF_BUILD_LIBPROTOC="ON" \
-      BAZALT_PROTOBUF_BUILD_SHARED_LIBS="ON" \
-    . /container-build/scripts/protobuf-source-install.sh
-
+FROM bazalt-builder-base AS bazalt-builder-zenoh
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+ARG BAZALT_ZENOH_VERSION
+ENV BAZALT_ZENOH_VERSION=${BAZALT_ZENOH_VERSION}
 ENV RUSTUP_HOME=/opt/rust/rustup
 ENV CARGO_HOME=/opt/rust/cargo
 ENV PATH="${CARGO_HOME}/bin:${PATH}"
-RUN --mount=type=bind,source=./scripts,target=/container-build/scripts \
+
+RUN --mount=type=bind,source=./scripts/rustup-install.sh,target=/container-build/scripts/rustup-install.sh \
     . /container-build/scripts/rustup-install.sh && \
     rustup-init -y --default-toolchain none --profile minimal
 
-RUN --mount=type=bind,source=./scripts,target=/container-build/scripts \
+RUN --mount=type=bind,source=./scripts/zenoh-c-source-install.sh,target=/container-build/scripts/zenoh-c-source-install.sh \
+    --mount=type=bind,source=./scripts/zenoh-cpp-source-install.sh,target=/container-build/scripts/zenoh-cpp-source-install.sh \
     . /container-build/scripts/zenoh-c-source-install.sh && \
     . /container-build/scripts/zenoh-cpp-source-install.sh
 
+FROM bazalt-builder-base AS bazalt-builder-protobuf
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+ARG BAZALT_PROTOBUF_VERSION
+ENV BAZALT_PROTOBUF_VERSION=${BAZALT_PROTOBUF_VERSION}
+RUN --mount=type=bind,source=./scripts/protobuf-source-install.sh,target=/container-build/scripts/protobuf-source-install.sh \
+    --mount=type=bind,source=./scripts/protobuf-6.31.1.patch,target=/container-build/scripts/protobuf-6.31.1.patch \
+    . /container-build/scripts/protobuf-source-install.sh
+
+FROM bazalt-builder-base AS bazalt-builder-flatbuffers
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+ARG BAZALT_FLATBUFFERS_VERSION
+ENV BAZALT_FLATBUFFERS_VERSION=${BAZALT_FLATBUFFERS_VERSION}
+
+FROM bazalt-builder-base AS bazalt-builder
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+
+# Copy installed files from all builder stages into the final image
+COPY --from=bazalt-builder-boost       ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
+COPY --from=bazalt-builder-zenoh       ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
+COPY --from=bazalt-builder-protobuf    ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
+COPY --from=bazalt-builder-flatbuffers ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
+
 FROM bazalt-builder AS bazalt-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+
+RUN dnf install -y \
+      nano \
+      && \
+    dnf clean all
+
+FROM ghcr.io/almalinux/8-init AS bazalt-runtime
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+
+ARG BAZALT_ZENOH_VERSION
+ARG BAZALT_PROTOBUF_VERSION
+
+ENV BAZALT_ZENOH_VERSION=${BAZALT_ZENOH_VERSION}
+ENV BAZALT_PROTOBUF_VERSION=${BAZALT_PROTOBUF_VERSION}
+
+COPY --from=bazalt-builder /usr/local/lib64/libzenohc.so /usr/local/lib64/libzenohc.so.${BAZALT_ZENOH_VERSION}
+COPY --from=bazalt-builder /usr/local/lib64/libprotobuf.so.* /usr/local/lib64/
+
+RUN ln -s /usr/local/lib64/libzenohc.so.${BAZALT_ZENOH_VERSION} /usr/local/lib64/libzenohc.so

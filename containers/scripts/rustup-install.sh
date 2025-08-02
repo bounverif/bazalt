@@ -11,6 +11,7 @@ fi
 
 BAZALT_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX:=/usr/local}"
 
+mkdir -p "${BAZALT_INSTALL_PREFIX}/bin"
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "${BAZALT_INSTALL_PREFIX}/bin/rustup-init"
 chmod +x "${BAZALT_INSTALL_PREFIX}/bin/rustup-init"
 

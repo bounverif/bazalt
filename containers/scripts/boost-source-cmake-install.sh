@@ -14,8 +14,7 @@ BAZALT_BOOST_VERSION="${BAZALT_BOOST_VERSION:="1.88.0"}"
 BAZALT_BOOST_SOURCE_DIR="${BAZALT_BOOST_SOURCE_DIR:=/tmp/bazalt/boost}"
 BAZALT_BOOST_BUILD_DIR="${BAZALT_BOOST_BUILD_DIR:=/tmp/build/boost}"
 BAZALT_BOOST_CMAKE_RELEASE_URL="${BAZALT_BOOST_CMAKE_RELEASE_URL:=https://github.com/boostorg/boost/releases/download/boost-${BAZALT_BOOST_VERSION}/boost-${BAZALT_BOOST_VERSION}-cmake.tar.gz}"
-
-BAZALT_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX:=/usr/local}"
+BAZALT_BOOST_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX:=/usr/local}"
 
 # Get Boost CMake release tarball
 mkdir -p "${BAZALT_BOOST_SOURCE_DIR}"
@@ -31,7 +30,7 @@ cmake \
   -DBUILD_SHARED_LIBS=OFF \
   -DBOOST_ENABLE_MPI=OFF \
   -DBOOST_ENABLE_PYTHON=OFF \
-  -DCMAKE_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX}" \
+  -DCMAKE_INSTALL_PREFIX="${BAZALT_BOOST_INSTALL_PREFIX}" \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 cmake --build "${BAZALT_BOOST_BUILD_DIR}" --target install -- -j"$(nproc)"
 
@@ -39,4 +38,4 @@ cmake --build "${BAZALT_BOOST_BUILD_DIR}" --target install -- -j"$(nproc)"
 echo "Cleaning up..."
 rm -rf "${BAZALT_BOOST_SOURCE_DIR}" "${BAZALT_BOOST_BUILD_DIR}"
 
-echo "Boost ${BAZALT_BOOST_VERSION} installed successfully to ${BAZALT_INSTALL_PREFIX}."
+echo "Boost ${BAZALT_BOOST_VERSION} installed successfully to ${BAZALT_BOOST_INSTALL_PREFIX}."

@@ -1,6 +1,6 @@
 {
   "name": "Bazalt",
-  "image": "bazalt:latest-builder",
+  "image": "bazalt:latest-devel",
   // "build": {
   //   "context": "../containers",
   //   "dockerfile": "../containers/bazalt-devel/Dockerfile",
