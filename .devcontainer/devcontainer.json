@@ -1,11 +1,6 @@
 {
   "name": "Bazalt",
-  "image": "bazalt:latest-devel",
-  // "build": {
-  //   "context": "../containers",
-  //   "dockerfile": "../containers/bazalt-devel/Dockerfile",
-  //   "target": "bazalt-devel"
-  // },
+  "image": "ghcr.io/bounverif/bazalt:latest-devel",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -24,6 +19,6 @@
         "editor.formatOnPaste": true
       }
     }
-  }
-  // "postCreateCommand": "pre-commit install"
+  },
+  "postCreateCommand": "pre-commit install"
 }

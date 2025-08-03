@@ -44,9 +44,8 @@ RUN mkdir -p ${BAZALT_INSTALL_PREFIX}
 # Update environment paths for tools, headers, libraries, and build systems
 ENV PATH="${BAZALT_INSTALL_PREFIX}/bin:${PATH}" \
     CPATH="${BAZALT_INSTALL_PREFIX}/include:${CPATH}" \
-    LD_LIBRARY_PATH="${BAZALT_INSTALL_PREFIX}/lib64:${BAZALT_INSTALL_PREFIX}/lib:${LD_LIBRARY_PATH}" \
-    PKG_CONFIG_PATH="${BAZALT_INSTALL_PREFIX}/lib64/pkgconfig:${BAZALT_INSTALL_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}" \
-    CMAKE_PREFIX_PATH="${BAZALT_INSTALL_PREFIX}:${CMAKE_PREFIX_PATH}"
+    LD_LIBRARY_PATH="${BAZALT_INSTALL_PREFIX}/lib:${LD_LIBRARY_PATH}" \
+    PKG_CONFIG_PATH="${BAZALT_INSTALL_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
 FROM bazalt-builder-base AS bazalt-builder-boost
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
@@ -119,6 +118,12 @@ ENV BAZALT_ZENOH_VERSION=${BAZALT_ZENOH_VERSION}
 ARG BAZALT_PROTOBUF_VERSION
 ENV BAZALT_PROTOBUF_VERSION=${BAZALT_PROTOBUF_VERSION}
 
-COPY --from=bazalt-builder  ${BAZALT_INSTALL_PREFIX}/lib64/libzenohc.so* \
-                            ${BAZALT_INSTALL_PREFIX}/lib64/libprotobuf.so* \
-                            /usr/local/lib64/
+ARG BAZALT_INSTALL_PREFIX="/opt/bazalt"
+ARG BAZALT_INSTALL_LIBDIR="lib"
+COPY --from=bazalt-builder --chmod=755 \
+      ${BAZALT_INSTALL_PREFIX}/${BAZALT_INSTALL_LIBDIR}/libzenohc.so* \
+      ${BAZALT_INSTALL_PREFIX}/${BAZALT_INSTALL_LIBDIR}/libprotobuf.so* \
+    /usr/local/lib/
+
+# Ensure dynamic linker can find new libraries
+RUN ldconfig

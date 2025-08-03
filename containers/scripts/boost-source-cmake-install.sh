@@ -1,20 +1,25 @@
-#!/bin/bash -ex
+#!/usr/bin/env bash
 #
 # Example Usage:
 # BAZALT_INSTALL_PREFIX=/tmp/install BAZALT_BOOST_VERSION=1.88.0 boost-source-install.sh
 
+set -ex
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
 # Ensure prerequisites are installed
-if ! command -v git >/dev/null 2>&1; then
-  echo "Error: 'git' is required but not installed. Please install git and try again." >&2
+if ! command -v cmake >/dev/null 2>&1; then
+  echo "Error: 'cmake' is required but not installed. Please install cmake and try again." >&2
   exit 1
 fi
 
 # Set default values for Boost build configuration
-BAZALT_BOOST_VERSION="${BAZALT_BOOST_VERSION:="1.88.0"}"
-BAZALT_BOOST_SOURCE_DIR="${BAZALT_BOOST_SOURCE_DIR:=/tmp/bazalt/boost}"
-BAZALT_BOOST_BUILD_DIR="${BAZALT_BOOST_BUILD_DIR:=/tmp/build/boost}"
-BAZALT_BOOST_CMAKE_RELEASE_URL="${BAZALT_BOOST_CMAKE_RELEASE_URL:=https://github.com/boostorg/boost/releases/download/boost-${BAZALT_BOOST_VERSION}/boost-${BAZALT_BOOST_VERSION}-cmake.tar.gz}"
-BAZALT_BOOST_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX:=/usr/local}"
+BAZALT_BOOST_VERSION="${BAZALT_BOOST_VERSION:-"1.88.0"}"
+BAZALT_BOOST_CMAKE_RELEASE_URL="${BAZALT_BOOST_CMAKE_RELEASE_URL:-"https://github.com/boostorg/boost/releases/download/boost-${BAZALT_BOOST_VERSION}/boost-${BAZALT_BOOST_VERSION}-cmake.tar.gz"}"
+BAZALT_BOOST_SOURCE_DIR="${BAZALT_BOOST_SOURCE_DIR:-"/tmp/bazalt/boost"}"
+BAZALT_BOOST_BUILD_DIR="${BAZALT_BOOST_BUILD_DIR:-"/tmp/build/boost"}"
+BAZALT_BOOST_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX:-"/opt/bazalt"}"
+BAZALT_BOOST_INSTALL_LIBDIR="${BAZALT_INSTALL_LIBDIR:-"lib"}"
 
 # Get Boost CMake release tarball
 mkdir -p "${BAZALT_BOOST_SOURCE_DIR}"
@@ -31,6 +36,7 @@ cmake \
   -DBOOST_ENABLE_MPI=OFF \
   -DBOOST_ENABLE_PYTHON=OFF \
   -DCMAKE_INSTALL_PREFIX="${BAZALT_BOOST_INSTALL_PREFIX}" \
+  -DCMAKE_INSTALL_LIBDIR="${BAZALT_BOOST_INSTALL_LIBDIR}" \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 cmake --build "${BAZALT_BOOST_BUILD_DIR}" --target install -- -j"$(nproc)"
 

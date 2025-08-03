@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/usr/bin/env bash
 #
 # Example Usage:
 # BAZALT_INSTALL_PREFIX=/tmp/install rustup-install.sh
@@ -9,10 +9,10 @@ if ! command -v curl >/dev/null 2>&1; then
   exit 1
 fi
 
-BAZALT_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX:=/usr/local}"
+BAZALT_RUST_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX:-/usr/local}"
 
-mkdir -p "${BAZALT_INSTALL_PREFIX}/bin"
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "${BAZALT_INSTALL_PREFIX}/bin/rustup-init"
-chmod +x "${BAZALT_INSTALL_PREFIX}/bin/rustup-init"
+mkdir -p "${BAZALT_RUST_INSTALL_PREFIX}/bin"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o "${BAZALT_RUST_INSTALL_PREFIX}/bin/rustup-init"
+chmod +x "${BAZALT_RUST_INSTALL_PREFIX}/bin/rustup-init"
 
-echo "Rustup $("${BAZALT_INSTALL_PREFIX}"/bin/rustup-init --version) installed successfully to ${BAZALT_INSTALL_PREFIX}."
+echo "Rustup $("${BAZALT_RUST_INSTALL_PREFIX}"/bin/rustup-init --version) installed successfully to ${BAZALT_RUST_INSTALL_PREFIX}."
