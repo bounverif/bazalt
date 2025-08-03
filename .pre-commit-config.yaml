@@ -23,3 +23,4 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
+        exclude: \.patch$|\.diff$

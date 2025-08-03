@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+#
+# Example Usage:
+# BAZALT_INSTALL_PREFIX=/tmp/install BAZALT_FLATBUFFERS_VERSION=3.15.2 flatbuffers-source-install.sh
+
+set -ex
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+# Ensure prerequisites are installed
+if ! command -v cmake >/dev/null 2>&1; then
+  echo "Error: 'cmake' is required but not installed. Please install cmake and try again." >&2
+  exit 1
+fi
+
+BAZALT_FLATBUFFERS_VERSION="${BAZALT_FLATBUFFERS_VERSION:-"25.2.10"}"
+BAZALT_FLATBUFFERS_GIT_URL="https://github.com/google/flatbuffers"
+BAZALT_FLATBUFFERS_SOURCE_DIR="/tmp/bazalt/flatbuffers"
+BAZALT_FLATBUFFERS_BUILD_DIR="/tmp/build/flatbuffers"
+BAZALT_FLATBUFFERS_BUILD_SHARED_LIBS="${BAZALT_FLATBUFFERS_BUILD_SHARED_LIBS:-"OFF"}"
+BAZALT_FLATBUFFERS_INSTALL_PREFIX="${BAZALT_INSTALL_PREFIX:-"/opt/bazalt"}"
+BAZALT_FLATBUFFERS_INSTALL_LIBDIR="${BAZALT_INSTALL_LIBDIR:-"lib"}"
+
+echo "Cloning Flatbuffers version ${BAZALT_FLATBUFFERS_VERSION}..."
+git clone "${BAZALT_FLATBUFFERS_GIT_URL}" "${BAZALT_FLATBUFFERS_SOURCE_DIR}" \
+  --depth 1 \
+  --branch "v${BAZALT_FLATBUFFERS_VERSION}" \
+  --recurse-submodules
+
+cmake \
+  -S "${BAZALT_FLATBUFFERS_SOURCE_DIR}/${FLATBUFFERS_SOURCE_CMAKELISTS_DIR}" \
+  -B "${BAZALT_FLATBUFFERS_BUILD_DIR}" \
+  -DFLATBUFFERS_BUILD_SHAREDLIB="${BAZALT_FLATBUFFERS_BUILD_SHARED_LIBS}" \
+  -DFLATBUFFERS_BUILD_FLATC=ON \
+  -DFLATBUFFERS_BUILD_FLATLIB=ON \
+  -DFLATBUFFERS_BUILD_FLATHASH=OFF \
+  -DFLATBUFFERS_BUILD_TESTS=OFF \
+  -DFLATBUFFERS_BUILD_BENCHMARKS=OFF \
+  -DCMAKE_INSTALL_PREFIX="${BAZALT_FLATBUFFERS_INSTALL_PREFIX}" \
+  -DCMAKE_INSTALL_LIBDIR="${BAZALT_FLATBUFFERS_INSTALL_LIBDIR}" \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+cmake --build "${BAZALT_FLATBUFFERS_BUILD_DIR}" --target install
+
+# Clean up temporary directory
+echo "Cleaning up..."
+rm -rf "${BAZALT_FLATBUFFERS_SOURCE_DIR}" "${BAZALT_FLATBUFFERS_BUILD_DIR}"
+
+echo "Flatbuffers ${BAZALT_FLATBUFFERS_VERSION} installed successfully to ${BAZALT_FLATBUFFERS_INSTALL_PREFIX}."
