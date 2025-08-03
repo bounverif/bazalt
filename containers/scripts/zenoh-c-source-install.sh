@@ -26,8 +26,8 @@ cmake \
   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 cmake --build "${BAZALT_ZENOH_C_BUILD_DIR}" --target install
 
-mv "${BAZALT_ZENOH_C_INSTALL_PREFIX}/libzenohc.so" "${BAZALT_ZENOH_C_INSTALL_PREFIX}/libzenohc.so.${BAZALT_ZENOH_C_VERSION}"
-ln -sf "libzenohc.so.${BAZALT_ZENOH_C_VERSION}" "${BAZALT_ZENOH_C_INSTALL_PREFIX}/libzenohc.so"
+mv "${BAZALT_ZENOH_C_INSTALL_PREFIX}/lib64/libzenohc.so" "${BAZALT_ZENOH_C_INSTALL_PREFIX}/lib64/libzenohc.so.${BAZALT_ZENOH_C_VERSION}"
+ln -sf "libzenohc.so.${BAZALT_ZENOH_C_VERSION}" "${BAZALT_ZENOH_C_INSTALL_PREFIX}/lib64/libzenohc.so"
 
 # Clean up temporary directory
 echo "Cleaning up..."

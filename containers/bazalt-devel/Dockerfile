@@ -18,9 +18,23 @@ FROM ${BAZALT_BASE_IMAGE} AS bazalt-builder-base
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
 RUN dnf install -y \
+      curl \
+      wget \
+      tar \
+      gzip \
+      bzip2 \
+      xz \
+      unzip \
+      git \
+      make \
+      cmake \
+      patch \
       ninja-build \
       zlib-devel \
       openssl-devel \
+      python3.11 \
+      python3.11-pip \
+      pkgconf-pkg-config \
       && \
     dnf clean all
 
@@ -88,16 +102,23 @@ RUN dnf install -y \
       && \
     dnf clean all
 
+RUN python3 -m pip install --no-cache-dir pipx && \
+    python3 -m pipx ensurepath && \
+    python3 -m pipx install --pip-args="--no-cache-dir" \
+      reuse \
+      pre-commit \
+      && \
+    rm -rf /root/.cache /root/.local/share/pipx/.cache
+
 FROM ghcr.io/almalinux/8-init AS bazalt-runtime
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
 ARG BAZALT_ZENOH_VERSION
-ARG BAZALT_PROTOBUF_VERSION
-
 ENV BAZALT_ZENOH_VERSION=${BAZALT_ZENOH_VERSION}
+
+ARG BAZALT_PROTOBUF_VERSION
 ENV BAZALT_PROTOBUF_VERSION=${BAZALT_PROTOBUF_VERSION}
 
-COPY --from=bazalt-builder /usr/local/lib64/libzenohc.so /usr/local/lib64/libzenohc.so.${BAZALT_ZENOH_VERSION}
-COPY --from=bazalt-builder /usr/local/lib64/libprotobuf.so.* /usr/local/lib64/
-
-RUN ln -s /usr/local/lib64/libzenohc.so.${BAZALT_ZENOH_VERSION} /usr/local/lib64/libzenohc.so
+COPY --from=bazalt-builder  ${BAZALT_INSTALL_PREFIX}/lib64/libzenohc.so* \
+                            ${BAZALT_INSTALL_PREFIX}/lib64/libprotobuf.so* \
+                            /usr/local/lib64/
