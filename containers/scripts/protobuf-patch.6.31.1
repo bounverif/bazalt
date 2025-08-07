@@ -3,18 +3,18 @@ index 82d1965..4e62a30 100644
 --- a/third_party/utf8_range/CMakeLists.txt
 +++ b/third_party/utf8_range/CMakeLists.txt
 @@ -11,13 +11,11 @@ option (utf8_range_ENABLE_INSTALL "Configure installation" ON)
- 
+
  ##
  # Create the lightweight C library
 -add_library (utf8_range
 -  utf8_range.c
 -)
 +add_library (utf8_range STATIC utf8_range.c)
- 
+
  ##
  # A heavier-weight C++ wrapper that supports Abseil.
 -add_library (utf8_validity utf8_range.c)
 +add_library (utf8_validity STATIC utf8_range.c)
- 
+
  set_target_properties(utf8_range PROPERTIES
    VERSION ${protobuf_VERSION}

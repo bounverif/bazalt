@@ -11,7 +11,7 @@ ARG BAZALT_DEVEL_IMAGE=${BAZALT_IMAGE_NAME_FULL}:${BAZALT_IMAGE_VERSION}-devel
 
 ARG BAZALT_BOOST_VERSION=1.88.0
 ARG BAZALT_ZENOH_VERSION=1.5.0
-ARG BAZALT_PROTOBUF_VERSION=6.31.1
+ARG BAZALT_PROTOBUF_VERSION=3.21.12
 ARG BAZALT_FLATBUFFERS_VERSION=25.2.10
 
 FROM ${BAZALT_BASE_IMAGE} AS bazalt-builder-base
@@ -43,7 +43,7 @@ RUN mkdir -p ${BAZALT_INSTALL_PREFIX}
 
 # Update environment paths for tools, headers, libraries, and build systems
 ENV PATH="${BAZALT_INSTALL_PREFIX}/bin:${PATH}" \
-    CPATH="${BAZALT_INSTALL_PREFIX}/include:${CPATH}" \
+    CPATH="${BAZALT_INSTALL_PREFIX}/include" \
     LD_LIBRARY_PATH="${BAZALT_INSTALL_PREFIX}/lib:${LD_LIBRARY_PATH}" \
     PKG_CONFIG_PATH="${BAZALT_INSTALL_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
 
@@ -75,9 +75,11 @@ FROM bazalt-builder-base AS bazalt-builder-protobuf
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 ARG BAZALT_PROTOBUF_VERSION
 ENV BAZALT_PROTOBUF_VERSION=${BAZALT_PROTOBUF_VERSION}
-RUN --mount=type=bind,source=./scripts/protobuf-source-install.sh,target=/container-build/scripts/protobuf-source-install.sh \
-    --mount=type=bind,source=./scripts/protobuf-6.31.1.patch,target=/container-build/scripts/protobuf-6.31.1.patch \
-    . /container-build/scripts/protobuf-source-install.sh
+# RUN --mount=type=bind,source=./scripts/protobuf-source-install.sh,target=/container-build/scripts/protobuf-source-install.sh \
+#     --mount=type=bind,source=./scripts/protobuf-6.31.1.patch,target=/container-build/scripts/protobuf-6.31.1.patch \
+#     . /container-build/scripts/protobuf-source-install.sh
+RUN --mount=type=bind,source=./scripts/protobuf-3-source-install.sh,target=/container-build/scripts/protobuf-3-source-install.sh \
+    . /container-build/scripts/protobuf-3-source-install.sh
 
 FROM bazalt-builder-base AS bazalt-builder-flatbuffers
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
