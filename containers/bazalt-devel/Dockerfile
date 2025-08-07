@@ -76,9 +76,10 @@ ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 ARG BAZALT_PROTOBUF_VERSION
 ENV BAZALT_PROTOBUF_VERSION=${BAZALT_PROTOBUF_VERSION}
 # RUN --mount=type=bind,source=./scripts/protobuf-source-install.sh,target=/container-build/scripts/protobuf-source-install.sh \
-#     --mount=type=bind,source=./scripts/protobuf-6.31.1.patch,target=/container-build/scripts/protobuf-6.31.1.patch \
+#     --mount=type=bind,source=./scripts/protobuf-patch.6.31.1,target=/container-build/scripts/protobuf.patch.6.31.1 \
 #     . /container-build/scripts/protobuf-source-install.sh
 RUN --mount=type=bind,source=./scripts/protobuf-3-source-install.sh,target=/container-build/scripts/protobuf-3-source-install.sh \
+    --mount=type=bind,source=./scripts/protobuf-patch.3.21.12,target=/container-build/scripts/protobuf-patch.3.21.12 \
     . /container-build/scripts/protobuf-3-source-install.sh
 
 FROM bazalt-builder-base AS bazalt-builder-flatbuffers

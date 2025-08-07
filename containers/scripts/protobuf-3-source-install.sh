@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Example Usage:
-# BAZALT_INSTALL_PREFIX=/tmp/install BAZALT_PROTOBUF_VERSION=6.31.1 protobuf-source-install.sh
+# BAZALT_INSTALL_PREFIX=/tmp/install BAZALT_PROTOBUF_VERSION=3.21.12 protobuf-3-source-install.sh
 
 set -ex
 
@@ -37,8 +37,13 @@ if [ ! -d "${BAZALT_PROTOBUF_SOURCE_DIR}" ]; then
     --recurse-submodules
 
   if [ -f "${SCRIPT_DIR}/protobuf-patch.${BAZALT_PROTOBUF_VERSION}" ]; then
-    patch -p1 -d "${BAZALT_PROTOBUF_SOURCE_DIR}" < "${SCRIPT_DIR}/protobuf-patch.${BAZALT_PROTOBUF_VERSION}"
-    echo "Applied patches for Protobuf version ${BAZALT_PROTOBUF_VERSION}."
+    echo "Found patch for Protobuf version ${BAZALT_PROTOBUF_VERSION}."
+
+    if patch -p1 -d "${BAZALT_PROTOBUF_SOURCE_DIR}" < "${SCRIPT_DIR}/protobuf-patch.${BAZALT_PROTOBUF_VERSION}"; then
+      echo "Applied patches for Protobuf version ${BAZALT_PROTOBUF_VERSION}."
+    else
+      echo "Failed to apply patch for Protobuf version ${BAZALT_PROTOBUF_VERSION}."
+    fi
   fi
 fi
 
