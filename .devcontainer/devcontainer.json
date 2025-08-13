@@ -6,19 +6,20 @@
       "extensions": [
         "EditorConfig.EditorConfig",
         "ms-vscode.cmake-tools",
-        "llvm-vs-code-extensions.vscode-clangd",
+        "ms-vscode.cpptools",
         "esbenp.prettier-vscode",
         "github.vscode-github-actions"
       ],
       "settings": {
-        "clangd.arguments": [
-          "--background-index",
-          "--completion-style=bundled",
-          "--header-insertion=never",
-          "--header-insertion-decorators",
-          "--clang-tidy",
-          "--all-scopes-completion"
-        ],
+        "C_Cpp.intelliSenseEngine": "Default",
+        "C_Cpp.autocomplete": "Default",
+        "editor.quickSuggestions": {
+          "other": true,
+          "comments": false,
+          "strings": true
+        },
+        "editor.suggestOnTriggerCharacters": true,
+        "editor.parameterHints.enabled": true,
         "editor.formatOnSave": true,
         "editor.formatOnPaste": true
       }
