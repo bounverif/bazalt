@@ -6,15 +6,19 @@
       "extensions": [
         "EditorConfig.EditorConfig",
         "ms-vscode.cmake-tools",
-        "ms-vscode.cpptools",
+        "llvm-vs-code-extensions.vscode-clangd",
         "esbenp.prettier-vscode",
         "github.vscode-github-actions"
       ],
       "settings": {
-        "cmake.configureOnOpen": false,
-        "cmake.configureOnEdit": false,
-        "cmake.sourceDirectory": "${workspaceFolder}",
-        "cmake.buildDirectory": "/tmp/${workspaceFolderBasename}/build",
+        "clangd.arguments": [
+          "--background-index",
+          "--completion-style=bundled",
+          "--header-insertion=never",
+          "--header-insertion-decorators",
+          "--clang-tidy",
+          "--all-scopes-completion"
+        ],
         "editor.formatOnSave": true,
         "editor.formatOnPaste": true
       }

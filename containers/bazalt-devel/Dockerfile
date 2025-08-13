@@ -28,10 +28,14 @@ RUN dnf install -y \
       git \
       make \
       cmake \
-      patch \
       ninja-build \
+      diffutils \
+      patch \
+      bloaty \
+      libabigail \
       zlib-devel \
       openssl-devel \
+      systemd-devel \
       python3.11 \
       python3.11-pip \
       pkgconf-pkg-config \
