@@ -14,7 +14,7 @@ if ! command -v cmake >/dev/null 2>&1; then
 fi
 
 # Set default values for Boost build configuration
-BAZALT_BOOST_VERSION="${BAZALT_BOOST_VERSION:-"1.88.0"}"
+BAZALT_BOOST_VERSION="${BAZALT_BOOST_VERSION:-"1.89.0"}"
 BAZALT_BOOST_CMAKE_RELEASE_URL="${BAZALT_BOOST_CMAKE_RELEASE_URL:-"https://github.com/boostorg/boost/releases/download/boost-${BAZALT_BOOST_VERSION}/boost-${BAZALT_BOOST_VERSION}-cmake.tar.gz"}"
 BAZALT_BOOST_SOURCE_DIR="${BAZALT_BOOST_SOURCE_DIR:-"/tmp/bazalt/boost"}"
 BAZALT_BOOST_BUILD_DIR="${BAZALT_BOOST_BUILD_DIR:-"/tmp/build/boost"}"
