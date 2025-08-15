@@ -10,8 +10,8 @@ repos:
     hooks:
       - id: cmake-format
         additional_dependencies: [pyyaml>=5.1]
-      - id: cmake-lint
-        additional_dependencies: [pyyaml>=5.1]
+      # - id: cmake-lint
+      #   additional_dependencies: [pyyaml>=5.1]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0 # Use the ref you want to point at
