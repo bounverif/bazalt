@@ -1,6 +1,13 @@
 {
   "name": "Bazalt",
-  "image": "ghcr.io/bounverif/bazalt:latest-devel",
+  "build": {
+    "dockerfile": "../containers/bazalt-devel/Dockerfile",
+    "context": "../containers",
+    "target": "bazalt-devel"
+  },
+  "runArgs": [
+    "--systemd=always"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
@@ -11,8 +18,8 @@
         "github.vscode-github-actions"
       ],
       "settings": {
-        "C_Cpp.intelliSenseEngine": "Default",
-        "C_Cpp.autocomplete": "Default",
+        "C_Cpp.intelliSenseEngine": "default",
+        "C_Cpp.autocomplete": "default",
         "editor.quickSuggestions": {
           "other": true,
           "comments": false,
