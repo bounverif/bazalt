@@ -75,6 +75,27 @@ RUN --mount=type=bind,source=./scripts/zenoh-c-source-install.sh,target=/contain
     . /container-build/scripts/zenoh-c-source-install.sh && \
     . /container-build/scripts/zenoh-cpp-source-install.sh
 
+FROM bazalt-builder-base AS bazalt-builder-iceoryx2
+ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
+ARG BAZALT_ZENOH_VERSION
+ENV BAZALT_ZENOH_VERSION=${BAZALT_ZENOH_VERSION}
+ENV RUSTUP_HOME=/opt/rust/rustup
+ENV CARGO_HOME=/opt/rust/cargo
+ENV PATH="${CARGO_HOME}/bin:${PATH}"
+
+RUN dnf install -y \
+      clang-devel \
+      libacl-devel \
+      && \
+    dnf clean all
+
+RUN --mount=type=bind,source=./scripts/rustup-install.sh,target=/container-build/scripts/rustup-install.sh \
+    . /container-build/scripts/rustup-install.sh && \
+    rustup-init -y --default-toolchain stable --profile minimal
+
+RUN --mount=type=bind,source=./scripts/iceoryx2-source-install.sh,target=/container-build/scripts/iceoryx2-source-install.sh \
+    . /container-build/scripts/iceoryx2-source-install.sh
+
 FROM bazalt-builder-base AS bazalt-builder-protobuf
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 ARG BAZALT_PROTOBUF_VERSION
@@ -97,6 +118,7 @@ ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 # Copy installed files from all builder stages into the final image
 COPY --from=bazalt-builder-boost       ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
 COPY --from=bazalt-builder-zenoh       ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
+# COPY --from=bazalt-builder-iceoryx2    ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
 COPY --from=bazalt-builder-protobuf    ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
 COPY --from=bazalt-builder-flatbuffers ${BAZALT_INSTALL_PREFIX}/ ${BAZALT_INSTALL_PREFIX}/
 
@@ -104,6 +126,7 @@ FROM bazalt-builder AS bazalt-devel
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
 
 RUN dnf install -y \
+      git \
       nano \
       && \
     dnf clean all
@@ -115,6 +138,8 @@ RUN python3 -m pip install --no-cache-dir pipx && \
       pre-commit \
       && \
     rm -rf /root/.cache /root/.local/share/pipx/.cache
+
+CMD ["/usr/lib/systemd/systemd"]
 
 FROM ghcr.io/almalinux/8-init AS bazalt-runtime
 ARG TARGETARCH TARGETOS TARGETPLATFORM TARGETVARIANT
